@@ -1,0 +1,40 @@
+{
+  "name": "GymBuds_V3",
+  "version": "0.0.1",
+  "private": true,
+  "scripts": {
+    "android": "react-native run-android",
+    "ios": "react-native run-ios",
+    "start": "react-native start",
+    "test": "jest",
+    "lint": "eslint ."
+  },
+  "dependencies": {
+    "@react-native-google-signin/google-signin": "^7.1.0",
+    "@react-navigation/native": "^6.0.8",
+    "@react-navigation/native-stack": "^6.5.0",
+    "lottie-react-native": "^5.0.1",
+    "react": "17.0.2",
+    "react-native": "0.67.3",
+    "react-native-elements": "^3.4.2",
+    "react-native-safe-area-context": "*",
+    "react-native-screens": "*",
+    "react-native-vector-icons": "^9.1.0",
+    "react-spring": "^8.0.27",
+    "react-tinder-card": "^1.4.5",
+    "styled-components": "^5.3.3"
+  },
+  "devDependencies": {
+    "@babel/core": "^7.17.5",
+    "@babel/runtime": "^7.17.2",
+    "@react-native-community/eslint-config": "^3.0.1",
+    "babel-jest": "^27.5.1",
+    "eslint": "^8.9.0",
+    "jest": "^27.5.1",
+    "metro-react-native-babel-preset": "^0.68.0",
+    "react-test-renderer": "17.0.2"
+  },
+  "jest": {
+    "preset": "react-native"
+  }
+}
