@@ -86,7 +86,8 @@ const db = [
 const alreadyRemoved = []
 let charactersState = db // This fixes issues with updating characters state forcing it to use the current state and not the state that was active when the card was created.
 
-const SwipePage = ({ navigation }) => {
+const SwipePage = ({ route, navigation }) => {
+
   const [characters, setCharacters] = useState(db);
   const [lastDirection, setLastDirection] = useState();
   const [cardShowing, setCardShowing] = useState(true);
@@ -129,7 +130,7 @@ const SwipePage = ({ navigation }) => {
         <LogoImage source={require('../public/imgs/twitter_header_photo_2.png')}/>
       </Header>
       { (!cardShowing) && 
-        <MessagePage/>
+        <MessagePage navigation={navigation}/>
       }
       { cardShowing && 
         <CardPage/>

@@ -1,6 +1,9 @@
-import React, { useState, useMemo } from 'react'
-import { StyleSheet, View, Text, Image, ImageBackground, ScrollView } from 'react-native'
+import React, { useState, useMemo, useEffect } from 'react'
+import { StyleSheet, View, Text, Image, ImageBackground, ScrollView, TouchableWithoutFeedback } from 'react-native'
 import styled from 'styled-components'
+import { connect } from 'react-redux';
+
+import firestore from '@react-native-firebase/firestore';
 
 const MessagesContainer = styled.View`
     flex: 15;
@@ -41,37 +44,34 @@ const MessageContent = styled.View`
     flex-direction: column;
 `
 
-const db = [
-    {
-      name: 'Richard Hendricks',
-      message: "When did you want to meet up?",
-      img: require('../public/imgs/richard.jpg')
-    },
-    {
-      name: 'Erlich Bachman',
-      message: "What gym do you go to?",
-      img: require('../public/imgs/erlich.jpg')
-    },
-    {
-      name: 'Monica Hall',
-      message: "I do an Upper / Lower split.",
-      img: require('../public/imgs/monica.jpg')
-    },
-    {
-      name: 'Jared Dunn',
-      message: "How often do you spar?",
-      img: require('../public/imgs/jared.jpg'),
-    },
-    {
-      name: 'Dinesh Chugtai',
-      message: "I like boxing too.",
-      img: require('../public/imgs/dinesh.jpg')
-    }
-  ]
 
-const MessagePage = () =>{
+const MessagePage = (props) =>{
 
-    const [characters, setCharacters] = useState(db)
+    const {navigation} = props;
+    const [messages, setMessages] = useState([]);
+
+    useEffect(() => {
+        firestore().collection("messages").get().then(querySnapshot => {
+            let localDB = []
+            querySnapshot.forEach(documentSnapshot => {
+                if(documentSnapshot.id.includes(props.user.user.uid)){
+                    let messages = documentSnapshot.data().messages
+                    let partnerID = ""; 
+                    for(let message of messages){
+                        if(message.id !== props.user.user.uid){
+                            partnerID = message.id;
+                            break;
+                        }
+                    }
+                    
+                    let latest = messages[messages .length-1];
+                    localDB.push({"name": partnerID, "message": latest.text, "img": require('../public/imgs/dinesh.jpg')})
+                }
+            })
+
+            setMessages(localDB);
+        });
+    }, []);
 
     return(
         <MessagesContainer>
@@ -80,23 +80,16 @@ const MessagePage = () =>{
             </Header>
             <MessageList>
               <ScrollView showsVerticalScrollIndicator={false}>
-                    {characters.map((character) =>
-                        <Message key={character.name}>
-                            <ProfileImage source={character.img}/>
-                            <MessageContent>
-                                <Text style={{fontWeight: 'bold', color: "black"}}>{character.name}</Text>
-                                <Text>{character.message}</Text>
-                            </MessageContent>
-                        </Message>
-                    )}
-                    {characters.map((character) =>
-                        <Message key={character.name}>
-                            <ProfileImage source={character.img}/>
-                            <MessageContent>
-                                <Text style={{fontWeight: 'bold', color: "black"}}>{character.name}</Text>
-                                <Text>{character.message}</Text>
-                            </MessageContent>
-                        </Message>
+                    {messages.map((character) =>
+                        <TouchableWithoutFeedback onPress={()=> {navigation.navigate("Message",  { partner: 789, user: props.user})}}>
+                            <Message key={Math.random().toString(16)}>
+                                <ProfileImage source={character.img}/>
+                                <MessageContent>
+                                    <Text style={{fontWeight: 'bold', color: "black"}}>{character.name}</Text>
+                                    <Text>{character.message}</Text>
+                                </MessageContent>
+                            </Message>
+                        </TouchableWithoutFeedback>
                     )}
               </ScrollView>
             </MessageList>
@@ -104,4 +97,9 @@ const MessagePage = () =>{
     )
 }
 
-export default MessagePage;
+const mapStateToProps = (state) => {
+    const { user } = state
+    return { user }
+};
+
+export default connect(mapStateToProps)(MessagePage);

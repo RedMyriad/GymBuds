@@ -103,7 +103,7 @@ export default function CardPage({ navigation }) {
           <LottieView source={require('../public/imgs/scanning.json')} autoPlay loop speed={0.9} />
         }
         {characters.map((character) =>
-          <TinderCard key={character.name} onSwipe={(dir) => swiped(dir, character.name)} onCardLeftScreen={() => outOfFrame(character.name)}>
+          <TinderCard key={Math.random().toString(16)} onSwipe={(dir) => swiped(dir, character.name)} onCardLeftScreen={() => outOfFrame(character.name)}>
             <Card>
               <CardImage source={character.img}>
                 <CardTitle>{character.name}</CardTitle>

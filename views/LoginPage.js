@@ -1,53 +1,50 @@
-import {
-    GoogleSignin,
-    statusCodes,
-    GoogleSigninButton
-} from '@react-native-google-signin/google-signin';
 
-import React, { useState, useEffect } from "react";
+import auth from '@react-native-firebase/auth';
+import { GoogleSignin, GoogleSigninButton } from '@react-native-google-signin/google-signin';
+
+import React, { useState, useEffect,use } from "react";
 import { StyleSheet, PixelRatio, View, Linking, ImageBackground, Text, Button } from 'react-native';
 
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { updateUser } from "../state/actions/user"
 
-export default function LoginPage({ navigation }) {
-
+function LoginPage(props) {
+    const { navigation } = props
     const [userInfo, setuserInfo] = useState(null);
 
+    const [initializing, setInitializing] = useState(true);
+    const [user, setUser] = useState();
+
     useEffect(()=>{
-        if(userInfo){
-            navigation.navigate("Swipe");
+        if(user){
+            console.log(props)
+            props.updateUser(user);
+            navigation.navigate("Swipe", { "user": user});
         }
-    }, [userInfo])
+    }, [user]);
 
-    const signInAsync = async () => {
-        GoogleSignin.configure({
-            clientId: '647950479411-m7e8l4nis71912stg9f20go3hk2gpans.apps.googleusercontent.com',
-        });
-        GoogleSignin.hasPlayServices().then((hasPlayService) => {
-            if (hasPlayService) {
-                GoogleSignin.signIn().then((user_info) => {
-                    setuserInfo(user_info);
-                }).catch((e) => {
-                console.log("ERROR IS: " + JSON.stringify(e));
-                })
-            }
-        }).catch((e) => {
-            console.log("ERROR IS: " + JSON.stringify(e));
-        })
-    };
-
-    const _syncUserWithStateAsync = async () =>{
-        GoogleSignin.configure({
-            clientId: '647950479411-m7e8l4nis71912stg9f20go3hk2gpans.apps.googleusercontent.com',
-        });
-        const user = await GoogleSignIn.signInSilentlyAsync();
-        setuserInfo(user);
-    };
+    useEffect(() => {
+        const subscriber = auth().onAuthStateChanged(onAuthStateChanged);
+        return subscriber; // unsubscribe on unmount
+    }, []);
     
-    const onPress = () => {
-        if (!userInfo) {
-            signInAsync();
-        }
-    };
+
+    async function onGoogleButtonPress() {
+        // Get the users ID token
+        const { idToken } = await GoogleSignin.signIn();
+      
+        // Create a Google credential with the token
+        const googleCredential = auth.GoogleAuthProvider.credential(idToken);
+
+        // Sign-in the user with the credential
+        return auth().signInWithCredential(googleCredential);
+    }
+
+    function onAuthStateChanged(user) {
+        setUser(user);
+        if (initializing) setInitializing(false);
+    }
 
     const navigateAbout = () =>{
         navigation.navigate("About");
@@ -76,7 +73,7 @@ export default function LoginPage({ navigation }) {
                         style={styles.google_button}
                         size={GoogleSigninButton.Size.Standard}
                         color={1}
-                        onPress={onPress}
+                        onPress={() => onGoogleButtonPress().then(() => console.log('Signed in with Google!'))}
                     />
                 </View>
             </ImageBackground>
@@ -129,3 +126,17 @@ const styles = StyleSheet.create({
         top: -40,
     },
 });
+
+
+const mapStateToProps = (state) => {
+    const { user } = state
+    return { user }
+};
+
+const mapDispatchToProps = dispatch => (
+    bindActionCreators({
+        updateUser,
+    }, dispatch)
+);
+  
+export default connect(mapStateToProps, mapDispatchToProps)(LoginPage);
