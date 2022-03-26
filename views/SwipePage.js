@@ -2,10 +2,10 @@ import React, { useState, useMemo, useRef } from 'react'
 import { View, Text, Image, ImageBackground, StyleSheet, TouchableWithoutFeedback } from 'react-native'
 import styled from 'styled-components'
 import CardPage from "./CardPage";
-import MessagePage from './MessagePage';
+import MessagePage from './MessageList';
 import LottieView from 'lottie-react-native';
 
-import { Icon } from 'react-native-elements';
+import { Icon, Avatar } from 'react-native-elements';
 
 
 const Container = styled.View`
@@ -16,47 +16,33 @@ const Container = styled.View`
     height: 100%;
 `
 
-const ProfileImage = styled.Image`
-    z-index: 2;
-    position: absolute;
-    top: 8px;
-    left: 15px;
-    width: 45px;
-    height: 45px;
-    border-radius: 15px;
-    overflow: hidden;
+const Header = styled.View`
+  flex: 1.5;
+  flex-direction: row;
+  width: 100%;
+  justify-content: space-around;
+  align-items: center;
+  justify-content: center;
+  background-color: #fff;
 `
 
 const LogoImage = styled.Image`
-    width: 100%;
+    width: 30%;
     height: 100%;
     overflow: hidden;
-`
-
-const Header = styled.View`
-    flex: 1.5;
-    color: #000;
-    font-size: 30px;
-
-    align-items: center;
-    justify-content: center;
-    resize-mode: cover;
-
-    width: 100%;
-    height: 100%;
-    color: "yellow";
 `
 
 const Footer = styled.View`
     display: flex;
-    flex: 1.5;
-    color: #000;
+    flex: 2;
+    justify-content: space-around;
     align-items: center;
-    font-size: 30px;
     flex-direction: row;
+
     width: 100%;
     height: 100%;
-    background-color: #ffe476;
+
+    background-color: #fff;
     z-index: 2;
 `
 
@@ -120,38 +106,87 @@ const SwipePage = ({ route, navigation }) => {
 
   const messageSelected = () =>{
     setCardShowing(false); 
-    msgAnimationRef.current.play();
   }
 
   return (
     <Container>
       <Header>
-        <ProfileImage source={require('../public/imgs/richard.jpg')}/>
-        <LogoImage source={require('../public/imgs/twitter_header_photo_2.png')}/>
-      </Header>
-      { (!cardShowing) && 
-        <MessagePage navigation={navigation}/>
-      }
-      { cardShowing && 
-        <CardPage/>
-      }
-      <Footer>
-        <View style={{paddingLeft: 100, zIndex: 2,}}>
-          <TouchableWithoutFeedback onPress={() => {setCardShowing(true); console.log("ere")}} >
+        <View style={{
+          position:'absolute',
+          left: 20,
+        }}>
+          <TouchableWithoutFeedback onPress={() => {setCardShowing(true);}} >
             <Icon
-                  name='code-of-conduct'
-                  type='octicon'
-
-                  size={45}
-                  />
+              name='person'
+              type='material'
+              color='#767676'
+              size={30}
+              />
           </TouchableWithoutFeedback>
         </View>
-        <TouchableWithoutFeedback onPress={()=>messageSelected()}>
-          <LottieView 
-            ref={msgAnimationRef} 
-            style={styles.message} 
-            source={require('../public/imgs/message-conversation.json')} loop speed={0.9} />
-        </TouchableWithoutFeedback>
+        <LogoImage source={require('../public/imgs/logo_transparent.png')}/>
+        <View style={{
+          position:'absolute',
+          right: 20,
+        }}>
+          <TouchableWithoutFeedback onPress={() => {navigation.navigate("MessageList");}} >
+            <Icon
+              name='forum'
+              type='material'
+              color='#767676'
+              size={25}
+              />
+          </TouchableWithoutFeedback>
+        </View>
+      </Header>
+
+      <CardPage/>
+
+      <Footer>
+        <View>
+          <TouchableWithoutFeedback onPress={() => {setCardShowing(true);}} >
+            <Icon
+              raised
+              name='replay'
+              type='material'
+              color='#f5b748'
+              size={20}
+              />
+          </TouchableWithoutFeedback>
+        </View>
+        <View>
+          <TouchableWithoutFeedback onPress={() => {setCardShowing(true);}} >
+            <Icon
+              raised
+              name='close'
+              type='material'
+              color='#ec5e6f'
+              size={20}
+              />
+          </TouchableWithoutFeedback>
+        </View>
+        <View>
+          <TouchableWithoutFeedback onPress={() => {setCardShowing(true);}} >
+            <Icon
+              raised
+              name='favorite'
+              type='material'
+              color='#62b4f9'
+              size={20}
+              />
+          </TouchableWithoutFeedback>
+        </View>
+        <View>
+          <TouchableWithoutFeedback onPress={() => {setCardShowing(true);}} >
+            <Icon
+              raised
+              name='flash-on'
+              type='material'
+              color='#915dd1'
+              size={20}
+              />
+          </TouchableWithoutFeedback>
+        </View>
       </Footer>
     </Container>
   )
