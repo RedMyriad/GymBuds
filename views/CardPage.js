@@ -1,7 +1,8 @@
 
-import React, { useState, useMemo } from 'react'
+import React, { useState, useMemo, useEffect, useRef, useCallback} from 'react'
+import { StyleSheet, Text, View, Dimensions, Image, PanResponder } from 'react-native';
 import styled from 'styled-components'
-import TinderCard from 'react-tinder-card'
+import SwipeCards from "react-native-swipe-cards-deck";
 
 
 import LottieView from 'lottie-react-native';
@@ -11,18 +12,18 @@ const CardContainer = styled.View`
     flex: 15;
     width: 100%;
     height: 100%;
-    
+    justify-content: center;
+    align-items:flex-start;
     padding-bottom: 10px;
     background-color: #fff;
 `
 
-const Card = styled.View`
+const CardContainerSub = styled.View`
     position: absolute;
-    background-color: #fff;
-    top: 10px;
-    left: 10px;
-    width: 95%;
-    height: 570px;
+    top: -260;
+    left: 20;
+    width: 90%;
+    height: 540px;
     shadow-color: black;
     shadow-opacity: 0.1;
     shadow-radius: 10px;
@@ -38,81 +39,83 @@ const CardImage = styled.ImageBackground`
     border-radius: 10px;
 `
 
+const LoadingImage = styled.ImageBackground`
+    width: 90%;
+    height: 90%;
+    overflow: hidden;
+    position: relative;
+    top: 30px;
+    left: 35px;
+    border-radius: 10px;
+`
+
+const NoCards = styled.View`
+    position: absolute;
+    left: 20px;
+    width: 90%;
+    height: 540px;
+    shadow-color: black;
+    shadow-opacity: 0.1;
+    shadow-radius: 10px;
+    border-radius: 10px;
+    resize-mode: cover;
+`
+
 const CardTitle = styled.Text`
     position: absolute;
-    bottom: 0;
-    margin: 10px;
+    bottom: 20px;
+    left: 20px;
+    font-weight: bold;
+    font-size: 21px;
     color: #fff;
 `
 
-const db = [
-    {
-      name: 'Richard Hendricks',
-      img: require('../public/imgs/richard.jpg')
-    },
-    {
-      name: 'Erlich Bachman',
-      img: require('../public/imgs/erlich.jpg')
-    },
-    {
-      name: 'Monica Hall',
-      img: require('../public/imgs/monica.jpg')
-    },
-    {
-      name: 'Jared Dunn',
-      img: require('../public/imgs/jared.jpg')
-    },
-    {
-      name: 'Dinesh Chugtai',
-      img: require('../public/imgs/dinesh.jpg')
-    }
-  ]
+export default function CardPage({ navigation, cards, handleIndexUpdate }) {
+
+  function handleYup(card) {
+    handleIndexUpdate();
+    return true;
+  }
+
+  function handleNope(card) {
+    handleIndexUpdate();
+    return true;
+  }
+
+  function StatusCard() {
+    return (
+      <NoCards>
+        <LoadingImage source={require('../public/imgs/Loading.gif')}></LoadingImage>
+      </NoCards>
+    );
+  }
+
+  function Card({ data }) {
+    return (
+      <CardContainerSub>
+        <CardImage source={data.img}>
+          <CardTitle>{data.name}</CardTitle>
+        </CardImage>
+      </CardContainerSub>
+    );
+  }
   
-  const alreadyRemoved = []
-  let charactersState = db 
-
-export default function CardPage({ navigation }) {
-
-    const [characters, setCharacters] = useState(db)
-    const [lastDirection, setLastDirection] = useState()
-
-    const childRefs = useMemo(() => Array(db.length).fill(0).map(i => React.createRef()), [])
-
-    const swiped = (direction, nameToDelete) => {
-        console.log('removing: ' + nameToDelete + ' to the ' + direction)
-        setLastDirection(direction)
-        alreadyRemoved.push(nameToDelete)
-    }
-
-    const outOfFrame = (name) => {
-        console.log(name + ' left the screen!')
-        charactersState = charactersState.filter(character => character.name !== name)
-        setCharacters(charactersState)
-    }
-
-    const swipe = (dir) => {
-        const cardsLeft = characters.filter(person => !alreadyRemoved.includes(person.name))
-        if (cardsLeft.length) {
-        const toBeRemoved = cardsLeft[cardsLeft.length - 1].name // Find the card object to be removed
-        const index = db.map(person => person.name).indexOf(toBeRemoved) // Find the index of which to make the reference to
-        alreadyRemoved.push(toBeRemoved) // Make sure the next card gets removed next time if this card do not have time to exit the screen
-        childRefs[index].current.swipe(dir) // Swipe the card!
-        }
-    }
-    return(
+  return (
     <CardContainer>
-        {alreadyRemoved.length ===5  && 
-          <LottieView source={require('../public/imgs/scanning.json')} autoPlay loop speed={0.9} />
-        }
-        {characters.map((character) =>
-          <TinderCard key={Math.random().toString(16)} onSwipe={(dir) => swiped(dir, character.name)} onCardLeftScreen={() => outOfFrame(character.name)}>
-            <Card>
-              <CardImage source={character.img}>
-                <CardTitle>{character.name}</CardTitle>
-              </CardImage>
-            </Card>
-          </TinderCard>
-        )}
+      <SwipeCards
+          cards={cards}
+          renderCard={(cardData) => <Card data={cardData} />}
+          keyExtractor={(cardData) => String(cardData.id)}
+          renderNoMoreCards={() => <StatusCard/>}
+          dragY={false}
+          stack={true}
+          stackDepth={cards.length}
+          actions={{
+            nope: { show: true, onAction: handleNope },
+            yup: { show: false, onAction: handleYup },
+          }}
+        />
     </CardContainer>
-    )
+  );
 }
+

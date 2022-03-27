@@ -63,12 +63,12 @@ const MessageContent = styled.View`
 const MessageList = (props) =>{
     const {navigation, user} = props;
     const [messages, setMessages] = useState([]);
-
     useEffect(() => {
         firestore().collection("messages").get().then(querySnapshot => {
             let localDB = []
             querySnapshot.forEach(documentSnapshot => {
                 if(documentSnapshot.id.includes(user.user.uid)){
+                    console.log(documentSnapshot.data().messages)
                     let messages = documentSnapshot.data().messages
                     let partnerID = ""; 
                     for(let message of messages){
@@ -78,11 +78,10 @@ const MessageList = (props) =>{
                         }
                     }
                     
-                    let latest = messages[messages .length-1];
+                    let latest = messages[messages.length-1];
                     localDB.push({"name": partnerID, "message": latest.text, "img": require('../public/imgs/dinesh.jpg')})
                 }
             })
-
             setMessages(localDB);
         });
     }, []);
@@ -108,7 +107,7 @@ const MessageList = (props) =>{
             <MessageListContainer>
               <ScrollView showsVerticalScrollIndicator={false}>
                     {messages.map((character) =>
-                        <TouchableWithoutFeedback onPress={()=> {navigation.navigate("Message",  { partner: 789, user: props.user})}}>
+                        <TouchableWithoutFeedback onPress={()=> {navigation.navigate("Chat",  { partner: 789, user: props.user})}}>
                             <Message key={Math.random().toString(16)}>
                                 <Avatar 
                                     size={50}

@@ -1,9 +1,7 @@
-import React, { useState, useMemo, useRef } from 'react'
+import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react'
 import { View, Text, Image, ImageBackground, StyleSheet, TouchableWithoutFeedback } from 'react-native'
 import styled from 'styled-components'
 import CardPage from "./CardPage";
-import MessagePage from './MessageList';
-import LottieView from 'lottie-react-native';
 
 import { Icon, Avatar } from 'react-native-elements';
 
@@ -46,66 +44,75 @@ const Footer = styled.View`
     z-index: 2;
 `
 
-const db = [
-  {
-    name: 'Richard Hendricks',
-    img: require('../public/imgs/richard.jpg')
-  },
-  {
-    name: 'Erlich Bachman',
-    img: require('../public/imgs/erlich.jpg')
-  },
-  {
-    name: 'Monica Hall',
-    img: require('../public/imgs/monica.jpg')
-  },
-  {
-    name: 'Jared Dunn',
-    img: require('../public/imgs/jared.jpg')
-  },
-  {
-    name: 'Dinesh Chugtai',
-    img: require('../public/imgs/dinesh.jpg')
-  }
-]
-
-const alreadyRemoved = []
-let charactersState = db // This fixes issues with updating characters state forcing it to use the current state and not the state that was active when the card was created.
-
 const SwipePage = ({ route, navigation }) => {
-
-  const [characters, setCharacters] = useState(db);
-  const [lastDirection, setLastDirection] = useState();
-  const [cardShowing, setCardShowing] = useState(true);
-
-  const msgAnimationRef = useRef(null);
-
-  const childRefs = useMemo(() => Array(db.length).fill(0).map(i => React.createRef()), [])
-
-  const swiped = (direction, nameToDelete) => {
-    console.log('removing: ' + nameToDelete + ' to the ' + direction)
-    setLastDirection(direction)
-    alreadyRemoved.push(nameToDelete)
-  }
-
-  const outOfFrame = (name) => {
-    console.log(name + ' left the screen!')
-    charactersState = charactersState.filter(character => character.name !== name)
-    setCharacters(charactersState)
-  }
-
-  const swipe = (dir) => {
-    const cardsLeft = characters.filter(person => !alreadyRemoved.includes(person.name))
-    if (cardsLeft.length) {
-      const toBeRemoved = cardsLeft[cardsLeft.length - 1].name // Find the card object to be removed
-      const index = db.map(person => person.name).indexOf(toBeRemoved) // Find the index of which to make the reference to
-      alreadyRemoved.push(toBeRemoved) // Make sure the next card gets removed next time if this card do not have time to exit the screen
-      childRefs[index].current.swipe(dir) // Swipe the card!
+  const db = [
+    {
+      id: "1",
+      name: 'Richard Hendricks',
+      img: require('../public/imgs/richard.jpg')
+    },
+    {
+      id: "2",
+      name: 'Erlich Bachman',
+      img: require('../public/imgs/erlich.jpg')
+    },
+    {
+      id: "3",
+      name: 'Monica Hall',
+      img: require('../public/imgs/monica.jpg')
+    },
+    {
+      id: "4",
+      name: 'Jared Dunn',
+      img: require('../public/imgs/jared.jpg')
+    },
+    {
+      id: "5",
+      name: 'Dinesh Chugtai',
+      img: require('../public/imgs/dinesh.jpg')
     }
+  ]
+  
+  let [cards, setCards] = useState(db);
+  const [cardIndex, setCardIndex] = useState(1);
+
+  useEffect(()=>{
+    setCards(db.filter(card=>{
+      if(parseInt(card.id) < cardIndex){
+        return false;
+      }
+      return true;
+    }))
+    console.log(cardIndex)
+    console.log(cards)
+
+  }, [cardIndex])
+
+  const nextCard = () =>{
+    setCardIndex(cardIndex + 1);
   }
 
-  const messageSelected = () =>{
-    setCardShowing(false); 
+  const prevCard = () =>{
+    if(cardIndex === 1){
+      return;
+    }
+    setCardIndex(cardIndex - 1);
+  }
+
+  const handleLike = () => {
+    nextCard();
+  }
+
+  const handleDislike = () =>{
+    nextCard();
+  }
+
+  const handleGoBack = ()=>{
+    prevCard();
+  }
+
+  const handleIndexUpdate = () =>{
+    nextCard();
   }
 
   return (
@@ -140,11 +147,11 @@ const SwipePage = ({ route, navigation }) => {
         </View>
       </Header>
 
-      <CardPage/>
+      <CardPage cards={cards} navigation={navigation} handleIndexUpdate={handleIndexUpdate} />
 
       <Footer>
         <View>
-          <TouchableWithoutFeedback onPress={() => {setCardShowing(true);}} >
+          <TouchableWithoutFeedback onPress={() => handleGoBack()} >
             <Icon
               raised
               name='replay'
@@ -155,7 +162,7 @@ const SwipePage = ({ route, navigation }) => {
           </TouchableWithoutFeedback>
         </View>
         <View>
-          <TouchableWithoutFeedback onPress={() => {setCardShowing(true);}} >
+          <TouchableWithoutFeedback onPress={() => handleDislike()} >
             <Icon
               raised
               name='close'
@@ -166,12 +173,12 @@ const SwipePage = ({ route, navigation }) => {
           </TouchableWithoutFeedback>
         </View>
         <View>
-          <TouchableWithoutFeedback onPress={() => {setCardShowing(true);}} >
+          <TouchableWithoutFeedback onPress={()=>handleLike()} >
             <Icon
               raised
               name='favorite'
               type='material'
-              color='#62b4f9'
+              color='#76e2b3'
               size={20}
               />
           </TouchableWithoutFeedback>

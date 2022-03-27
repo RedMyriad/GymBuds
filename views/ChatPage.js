@@ -98,7 +98,8 @@ export function useLottieAnim() {
 const ChatPage = ({  route, navigation }) =>{
 
     const [messages, setMessages] = useState([]);
-    const [message, onMessageChange] = useState("");
+    const [workingUID, setWorkingUID] = useState();
+    let message = "";
 
     let inputRef = useRef(null);
     let listViewRef = useRef(null);
@@ -111,22 +112,19 @@ const ChatPage = ({  route, navigation }) =>{
     let userIdCombo1 = user.uid + "_" + partnetID;
     let userIdCombo2 = partnetID + "_" + user.uid;
 
-    console.log(userIdCombo1)
 
     useEffect(() => {
 
         const firstSubscriber = firestore().collection("messages").doc(userIdCombo1).onSnapshot(documentSnapshot => {
-            console.log(documentSnapshot)
             const data = documentSnapshot.data();
             if(data == undefined){
                 return;
             }
-
+            setWorkingUID(userIdCombo1);
             data.messages.forEach(message=>{
                 let id = Math.floor(Math.random() * (1000 - 1 + 1) + 1);
                 message["key"] = id;
             })
-            console.log(data.messages)
             setMessages(data.messages);
         });
 
@@ -135,11 +133,11 @@ const ChatPage = ({  route, navigation }) =>{
             if(data == undefined){
                 return;
             }
+            setWorkingUID(userIdCombo2);
             data.messages.forEach(message=>{
                 let id = Math.floor(Math.random() * (1000 - 1 + 1) + 1);
                 message["key"] = id;
             })
-            console.log(data.messages)
             setMessages(data.messages);
         });
 
@@ -147,16 +145,23 @@ const ChatPage = ({  route, navigation }) =>{
         return () => { firstSubscriber(); secondSubscriber(); }
     }, []);
 
+    const onMessageChange = (msg) =>{
+        message = msg;
+    }
+
     async function handleMessage(){
-        if(dbMain){
-            dbMain.collection('messages')
-            .doc("789")
-            .collection("123")
-            .doc("rTFCsKVirlKUNGcM9yJo")
-            .collection("messages")
-            .add({
-                text:message,
+        if(workingUID !== ""){
+            console.log(workingUID)
+            firestore().collection("messages").doc(workingUID)
+            .update({
+                messages: firestore.FieldValue.arrayUnion({
+                    id: String(user.uid),
+                    text: message,
+                })
+            }).then((res)=>{
+                console.log(res)
             })
+
         }
     }
 
@@ -166,12 +171,11 @@ const ChatPage = ({  route, navigation }) =>{
             return;
         }
 
-        inputRef.current.clear();
-        onMessageChange("");
+        handleMessage();
 
         listViewRef.current.scrollToEnd({ animated: true });
-
-        handleMessage();
+        inputRef.current.clear();
+        onMessageChange("");
     }
 
     return(
@@ -240,7 +244,6 @@ const ChatPage = ({  route, navigation }) =>{
                 <MessageBox
                     onChangeText={onMessageChange}
                     ref={inputRef}
-                    value={message}
                     placeholder="Text message"
                     keyboardType="default"
                 />
