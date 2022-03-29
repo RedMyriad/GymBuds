@@ -2,8 +2,10 @@ import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react'
 import { View, Text, Image, ImageBackground, StyleSheet, TouchableWithoutFeedback } from 'react-native'
 import styled from 'styled-components'
 import CardPage from "./CardPage";
+import { connect } from 'react-redux';
 
 import { Icon, Avatar } from 'react-native-elements';
+import firestore from '@react-native-firebase/firestore';
 
 
 const Container = styled.View`
@@ -22,6 +24,26 @@ const Header = styled.View`
   align-items: center;
   justify-content: center;
   background-color: #fff;
+`
+
+const NoCards = styled.View`
+    flex: 15;
+    width: 100%;
+    height: 100%;
+    justify-content: center;
+    align-items:flex-start;
+    padding-bottom: 10px;
+    background-color: #fff;
+`
+
+const LoadingImage = styled.ImageBackground`
+    width: 90%;
+    height: 90%;
+    overflow: hidden;
+    position: relative;
+    top: 30px;
+    left: 35px;
+    border-radius: 10px;
 `
 
 const LogoImage = styled.Image`
@@ -44,49 +66,53 @@ const Footer = styled.View`
     z-index: 2;
 `
 
-const SwipePage = ({ route, navigation }) => {
-  const db = [
-    {
-      id: "1",
-      name: 'Richard Hendricks',
-      img: require('../public/imgs/richard.jpg')
-    },
-    {
-      id: "2",
-      name: 'Erlich Bachman',
-      img: require('../public/imgs/erlich.jpg')
-    },
-    {
-      id: "3",
-      name: 'Monica Hall',
-      img: require('../public/imgs/monica.jpg')
-    },
-    {
-      id: "4",
-      name: 'Jared Dunn',
-      img: require('../public/imgs/jared.jpg')
-    },
-    {
-      id: "5",
-      name: 'Dinesh Chugtai',
-      img: require('../public/imgs/dinesh.jpg')
-    }
-  ]
+const SwipePage = ({ route, navigation, user }) => {
   
-  let [cards, setCards] = useState(db);
+  const [cards, setCards] = useState([]);
   const [cardIndex, setCardIndex] = useState(1);
+  const [userInfoDB, setUserInfoDB] = useState([]);
+  const [currentUserDbInfo, setCurrentUserDbInfo] = useState([]);
+  const [loading, setLoading] = useState(true);
+
+  useEffect(() => {
+    firestore().collection("users").get().then(querySnapshot => {
+      let localDB = []
+      querySnapshot.forEach(documentSnapshot => {
+        localDB.push(documentSnapshot.data())
+      })
+      setUserInfoDB(localDB);
+    });
+
+  }, [user]);
 
   useEffect(()=>{
-    setCards(db.filter(card=>{
-      if(parseInt(card.id) < cardIndex){
-        return false;
-      }
-      return true;
-    }))
-    console.log(cardIndex)
-    console.log(cards)
+    let localCards = cards === undefined? []: cards;
 
-  }, [cardIndex])
+    for(let dbUser of userInfoDB){
+      if(!(user.user.uid === dbUser.id)){
+        if(!localCards.filter(e=>e.id === dbUser.id).length > 0){
+          let imageString = require(`../public/imgs/dinesh.jpg`);
+          localCards.push({id: dbUser.id, name: dbUser.name, img: imageString})
+        }
+      }
+      else{
+        setCurrentUserDbInfo(dbUser);
+      }
+    }
+    setCards(localCards);
+    if(!(cards !== undefined && cards.length === 0)){
+      setLoading(false);
+    }
+
+  }, [userInfoDB])
+
+  useEffect(()=>{
+    if(cardIndex !== 1){
+      const localCards = cards;
+      localCards.shift();
+      setCards(localCards)
+    }
+  }, [cardIndex]);
 
   const nextCard = () =>{
     setCardIndex(cardIndex + 1);
@@ -147,7 +173,12 @@ const SwipePage = ({ route, navigation }) => {
         </View>
       </Header>
 
-      <CardPage cards={cards} navigation={navigation} handleIndexUpdate={handleIndexUpdate} />
+      {loading? 
+      <NoCards>
+        <LoadingImage source={require('../public/imgs/Loading.gif')}></LoadingImage>
+      </NoCards>: 
+        <CardPage cards={cards} navigation={navigation} handleIndexUpdate={handleIndexUpdate} userInfoDB={userInfoDB} currentUserDbInfo={currentUserDbInfo}/>
+      }
 
       <Footer>
         <View>
@@ -198,13 +229,9 @@ const SwipePage = ({ route, navigation }) => {
     </Container>
   )
 }
+const mapStateToProps = (state) => {
+  const { user } = state
+  return { user }
+};
 
-let styles = StyleSheet.create({
-  message:{
-    marginTop: 2,
-    marginLeft: 100,
-  }
-});
-
-
-export default SwipePage;
+export default connect(mapStateToProps)(SwipePage);

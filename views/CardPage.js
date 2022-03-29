@@ -3,10 +3,7 @@ import React, { useState, useMemo, useEffect, useRef, useCallback} from 'react'
 import { StyleSheet, Text, View, Dimensions, Image, PanResponder } from 'react-native';
 import styled from 'styled-components'
 import SwipeCards from "react-native-swipe-cards-deck";
-
-
-import LottieView from 'lottie-react-native';
-
+import firestore from '@react-native-firebase/firestore';
 
 const CardContainer = styled.View`
     flex: 15;
@@ -20,8 +17,8 @@ const CardContainer = styled.View`
 
 const CardContainerSub = styled.View`
     position: absolute;
-    top: -260;
-    left: 20;
+    top: -260px;
+    left: 20px;
     width: 90%;
     height: 540px;
     shadow-color: black;
@@ -70,12 +67,41 @@ const CardTitle = styled.Text`
     color: #fff;
 `
 
-export default function CardPage({ navigation, cards, handleIndexUpdate }) {
+export default function CardPage({ navigation, cards, handleIndexUpdate, currentUserDbInfo, userInfoDB }) {
+  const handleLike = (userID, likedID) =>{
+    // add new like for current user
+    firestore().collection("users").doc(userID)
+    .update({
+      Likes: firestore.FieldValue.arrayUnion({
+          id: String(likedID),
+      })
+    })
+  };
 
   function handleYup(card) {
+    let likedUser = userInfoDB.filter(e=>e.id === card.id)[0];
+
+    let matched = false;
+
+    handleLike(currentUserDbInfo.id, card.id)
+
+    // check if other user liked current user back
+    for(let like of likedUser.Likes){
+      if(like === currentUserDbInfo.id){
+        matched = true;
+        break;
+      }
+    }
+
+    // send to match page.
+    // to be added
+    if(matched){
+      console.log("Congrats! You got a match!")
+    }
+
     handleIndexUpdate();
     return true;
-  }
+  };
 
   function handleNope(card) {
     handleIndexUpdate();
@@ -111,7 +137,7 @@ export default function CardPage({ navigation, cards, handleIndexUpdate }) {
           stack={true}
           stackDepth={cards.length}
           actions={{
-            nope: { show: true, onAction: handleNope },
+            nope: { show: false, onAction: handleNope },
             yup: { show: false, onAction: handleYup },
           }}
         />

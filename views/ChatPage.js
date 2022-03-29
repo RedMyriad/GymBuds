@@ -151,16 +151,13 @@ const ChatPage = ({  route, navigation }) =>{
 
     async function handleMessage(){
         if(workingUID !== ""){
-            console.log(workingUID)
             firestore().collection("messages").doc(workingUID)
             .update({
                 messages: firestore.FieldValue.arrayUnion({
                     id: String(user.uid),
                     text: message,
                 })
-            }).then((res)=>{
-                console.log(res)
-            })
+            });
 
         }
     }

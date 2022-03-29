@@ -18,9 +18,8 @@ function LoginPage(props) {
 
     useEffect(()=>{
         if(user){
-            console.log(props)
             props.updateUser(user);
-            navigation.navigate("Swipe", { "user": user});
+            navigation.navigate("Swipe");
         }
     }, [user]);
 

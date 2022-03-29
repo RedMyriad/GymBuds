@@ -68,7 +68,6 @@ const MessageList = (props) =>{
             let localDB = []
             querySnapshot.forEach(documentSnapshot => {
                 if(documentSnapshot.id.includes(user.user.uid)){
-                    console.log(documentSnapshot.data().messages)
                     let messages = documentSnapshot.data().messages
                     let partnerID = ""; 
                     for(let message of messages){
