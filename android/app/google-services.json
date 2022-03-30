@@ -1,6 +1,7 @@
 {
   "project_info": {
     "project_number": "647950479411",
+    "firebase_url": "https://gymbudsv3-default-rtdb.firebaseio.com",
     "project_id": "gymbudsv3",
     "storage_bucket": "gymbudsv3.appspot.com"
   },

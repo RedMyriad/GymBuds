@@ -52,24 +52,18 @@ const LogoImage = styled.Image`
     overflow: hidden;
 `
 
-const Footer = styled.View`
-    display: flex;
-    flex: 2;
-    justify-content: space-around;
-    align-items: center;
-    flex-direction: row;
-
-    width: 100%;
-    height: 100%;
-
-    background-color: #fff;
-    z-index: 2;
+const CardContainer = styled.View`
+  flex: 15;
+  width: 100%;
+  height: 100%;
+  justify-content: center;
+  align-items:flex-start;
+  background-color: #fff;
 `
 
 const SwipePage = ({ route, navigation, user }) => {
   
   const [cards, setCards] = useState([]);
-  const [cardIndex, setCardIndex] = useState(1);
   const [userInfoDB, setUserInfoDB] = useState([]);
   const [currentUserDbInfo, setCurrentUserDbInfo] = useState([]);
   const [loading, setLoading] = useState(true);
@@ -91,8 +85,7 @@ const SwipePage = ({ route, navigation, user }) => {
     for(let dbUser of userInfoDB){
       if(!(user.user.uid === dbUser.id)){
         if(!localCards.filter(e=>e.id === dbUser.id).length > 0){
-          let imageString = require(`../public/imgs/dinesh.jpg`);
-          localCards.push({id: dbUser.id, name: dbUser.name, img: imageString})
+          localCards.push({id: dbUser.id, name: dbUser.name, img: dbUser.images[0]})
         }
       }
       else{
@@ -106,39 +99,9 @@ const SwipePage = ({ route, navigation, user }) => {
 
   }, [userInfoDB])
 
-  useEffect(()=>{
-    if(cardIndex !== 1){
-      const localCards = cards;
-      localCards.shift();
-      setCards(localCards)
-    }
-  }, [cardIndex]);
-
-  const nextCard = () =>{
-    setCardIndex(cardIndex + 1);
-  }
-
-  const prevCard = () =>{
-    if(cardIndex === 1){
-      return;
-    }
-    setCardIndex(cardIndex - 1);
-  }
-
-  const handleLike = () => {
-    nextCard();
-  }
-
-  const handleDislike = () =>{
-    nextCard();
-  }
-
-  const handleGoBack = ()=>{
-    prevCard();
-  }
-
-  const handleIndexUpdate = () =>{
-    nextCard();
+  const handleNextCard = () =>{
+    const localCards = cards.slice(1);
+    setCards(localCards.slice())
   }
 
   return (
@@ -174,58 +137,13 @@ const SwipePage = ({ route, navigation, user }) => {
       </Header>
 
       {loading? 
-      <NoCards>
-        <LoadingImage source={require('../public/imgs/Loading.gif')}></LoadingImage>
-      </NoCards>: 
-        <CardPage cards={cards} navigation={navigation} handleIndexUpdate={handleIndexUpdate} userInfoDB={userInfoDB} currentUserDbInfo={currentUserDbInfo}/>
+        <NoCards>
+          <LoadingImage source={require('../public/imgs/Loading.gif')}></LoadingImage>
+        </NoCards>: 
+        <CardContainer>
+          <CardPage cards={cards} navigation={navigation} handleNextCard={handleNextCard} userInfoDB={userInfoDB} currentUserDbInfo={currentUserDbInfo}/>
+        </CardContainer>
       }
-
-      <Footer>
-        <View>
-          <TouchableWithoutFeedback onPress={() => handleGoBack()} >
-            <Icon
-              raised
-              name='replay'
-              type='material'
-              color='#f5b748'
-              size={20}
-              />
-          </TouchableWithoutFeedback>
-        </View>
-        <View>
-          <TouchableWithoutFeedback onPress={() => handleDislike()} >
-            <Icon
-              raised
-              name='close'
-              type='material'
-              color='#ec5e6f'
-              size={20}
-              />
-          </TouchableWithoutFeedback>
-        </View>
-        <View>
-          <TouchableWithoutFeedback onPress={()=>handleLike()} >
-            <Icon
-              raised
-              name='favorite'
-              type='material'
-              color='#76e2b3'
-              size={20}
-              />
-          </TouchableWithoutFeedback>
-        </View>
-        <View>
-          <TouchableWithoutFeedback onPress={() => {setCardShowing(true);}} >
-            <Icon
-              raised
-              name='flash-on'
-              type='material'
-              color='#915dd1'
-              size={20}
-              />
-          </TouchableWithoutFeedback>
-        </View>
-      </Footer>
     </Container>
   )
 }
