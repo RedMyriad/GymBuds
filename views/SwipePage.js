@@ -85,7 +85,7 @@ const SwipePage = ({ route, navigation, user, cards, updateCardImages }) => {
     console.log("swipe page getting images")
     setLoadingStateAsync(true);
     handleGetCards();
-  }, []);
+  }, [cards]);
 
   const handleGetImages = async(imageList) =>{
     setImagesAsync(imageList)
