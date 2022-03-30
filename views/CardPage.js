@@ -4,10 +4,14 @@ import { StyleSheet, Text, View, Dimensions, Image, PanResponder, TouchableWitho
 import styled from 'styled-components'
 import SwipeCards from "react-native-swipe-cards-deck";
 import firestore from '@react-native-firebase/firestore';
-import storage from '@react-native-firebase/storage';
+
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+
+import { updateCards } from "../state/actions/cards";
+
 
 import { Icon, Avatar } from 'react-native-elements';
-import { set } from 'immer/dist/internal';
 
 const CardContainer = styled.View`
     width: 100%;
@@ -80,45 +84,14 @@ const Footer = styled.View`
     z-index: 2;
 `
 
-export default function CardPage({ navigation, cards, handleNextCard, currentUserDbInfo, userInfoDB }) {
-  const [loading, setLoading] = useState(true);
-  const [images, setImages] = useState([])
+function CardPage({ navigation, cards, cardImages, userDatabase, user, updateCards}) {
 
-  const setLoadingStateAsync = (check) =>{
-    return new Promise((resolve) => {
-      setLoading(check);
-    });
-  }
+  let currentUserDbInfo = userDatabase.filter(e=>e.id === user.uid)[0];
 
-  const setImagesAsync = (imageList) =>{
-    return new Promise((resolve) => {
-      setImages(imageList);
-    });
-  }
-
-  useEffect(()=>{
-    if(images.length === 0){
-      setLoadingStateAsync(true);
-      handleGetCards();
-    }
-  }, [cards]);
-
-  const handleGetImages = async(imageList) =>{
-    setImagesAsync(imageList)
-  }
-
-  const handleGetCards = async() =>{
-    // obtain card images
-    let localImages = []
-    for(let card of cards){
-      let url = storage().ref("/images/" + card.img).getDownloadURL().then((res)=>{
-        localImages.push({id:card.id, img: res})
-        if(cards[cards.length-1].id === card.id){
-          handleGetImages(localImages);
-          setLoadingStateAsync(false);
-        }
-      });
-    }
+  const handleNextCard = () =>{
+    let localCards = cards;
+    localCards = localCards.splice(1);
+    updateCards(localCards);
   }
 
   const handleLike = (userID, likedID) =>{
@@ -131,7 +104,7 @@ export default function CardPage({ navigation, cards, handleNextCard, currentUse
 
   function handleYup(card) {
     
-    let likedUser = userInfoDB.filter(e=>e.id === card.id)[0];
+    let likedUser = userDatabase.filter(e=>e.id === card.id)[0];
 
     let matched = false;
 
@@ -173,7 +146,7 @@ export default function CardPage({ navigation, cards, handleNextCard, currentUse
   function Card({ data }) {
 
     let imageURL;
-    for(let image of images){
+    for(let image of cardImages){
       if(image.id == data.id){
         imageURL = image;
       }
@@ -192,21 +165,19 @@ export default function CardPage({ navigation, cards, handleNextCard, currentUse
   
   return (
     <CardContainer>
-      {loading? <StatusCard/>:
-        <SwipeCards
-          cards={cards}
-          renderCard={(cardData) => <Card data={cardData} />}
-          keyExtractor={(cardData) => String(cardData.id)}
-          renderNoMoreCards={() => <StatusCard/>}
-          dragY={false}
-          stack={true}
-          stackDepth={cards.length}
-          actions={{
-            nope: { show: false, onAction: handleNope },
-            yup: { show: false, onAction: handleYup },
-          }}
-        />
-      }
+      <SwipeCards
+        cards={cards}
+        renderCard={(cardData) => <Card data={cardData} />}
+        keyExtractor={(cardData) => String(cardData.id)}
+        renderNoMoreCards={() => <StatusCard/>}
+        dragY={false}
+        stack={true}
+        stackDepth={cards.length}
+        actions={{
+          nope: { show: false, onAction: handleNope },
+          yup: { show: false, onAction: handleYup },
+        }}
+      />
       <Footer>
         <View>
           <TouchableWithoutFeedback onPress={() => handleNope({})} >
@@ -246,3 +217,15 @@ export default function CardPage({ navigation, cards, handleNextCard, currentUse
   );
 }
 
+const mapStateToProps = (state) => {
+  const { user, cards, cardImages, userDatabase} = state
+  return { user, cards, cardImages, userDatabase }
+};
+
+const mapDispatchToProps = dispatch => (
+  bindActionCreators({
+      updateCards,
+  }, dispatch)
+);
+
+export default connect(mapStateToProps, mapDispatchToProps)(CardPage);

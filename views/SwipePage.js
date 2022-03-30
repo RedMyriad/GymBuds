@@ -2,10 +2,14 @@ import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react'
 import { View, Text, Image, ImageBackground, StyleSheet, TouchableWithoutFeedback } from 'react-native'
 import styled from 'styled-components'
 import CardPage from "./CardPage";
+
 import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+
+import { updateCardImages } from "../state/actions/cardImages";
 
 import { Icon, Avatar } from 'react-native-elements';
-import firestore from '@react-native-firebase/firestore';
+import storage from '@react-native-firebase/storage';
 
 
 const Container = styled.View`
@@ -61,47 +65,44 @@ const CardContainer = styled.View`
   background-color: #fff;
 `
 
-const SwipePage = ({ route, navigation, user }) => {
-  
-  const [cards, setCards] = useState([]);
-  const [userInfoDB, setUserInfoDB] = useState([]);
-  const [currentUserDbInfo, setCurrentUserDbInfo] = useState([]);
+const SwipePage = ({ route, navigation, user, cards, updateCardImages }) => {
+
   const [loading, setLoading] = useState(true);
 
-  useEffect(() => {
-    firestore().collection("users").get().then(querySnapshot => {
-      let localDB = []
-      querySnapshot.forEach(documentSnapshot => {
-        localDB.push(documentSnapshot.data())
-      })
-      setUserInfoDB(localDB);
+  const setLoadingStateAsync = (check) =>{
+    return new Promise((resolve) => {
+      setLoading(check);
     });
+  }
 
-  }, [user]);
+  const setImagesAsync = (imageList) =>{
+    return new Promise((resolve) => {
+      updateCardImages(imageList);
+    });
+  }
 
   useEffect(()=>{
-    let localCards = cards === undefined? []: cards;
+    console.log("swipe page getting images")
+    setLoadingStateAsync(true);
+    handleGetCards();
+  }, []);
 
-    for(let dbUser of userInfoDB){
-      if(!(user.user.uid === dbUser.id)){
-        if(!localCards.filter(e=>e.id === dbUser.id).length > 0){
-          localCards.push({id: dbUser.id, name: dbUser.name, img: dbUser.images[0]})
+  const handleGetImages = async(imageList) =>{
+    setImagesAsync(imageList)
+  }
+
+  const handleGetCards = async() =>{
+    // obtain card images
+    let localImages = []
+    for(let card of cards){
+      let url = storage().ref("/images/" + card.img).getDownloadURL().then((res)=>{
+        localImages.push({id:card.id, img: res})
+        if(cards[cards.length-1].id === card.id){
+          handleGetImages(localImages);
+          setLoadingStateAsync(false);
         }
-      }
-      else{
-        setCurrentUserDbInfo(dbUser);
-      }
+      });
     }
-    setCards(localCards);
-    if(!(cards !== undefined && cards.length === 0)){
-      setLoading(false);
-    }
-
-  }, [userInfoDB])
-
-  const handleNextCard = () =>{
-    const localCards = cards.slice(1);
-    setCards(localCards.slice())
   }
 
   return (
@@ -111,7 +112,7 @@ const SwipePage = ({ route, navigation, user }) => {
           position:'absolute',
           left: 20,
         }}>
-          <TouchableWithoutFeedback onPress={() => {setCardShowing(true);}} >
+          <TouchableWithoutFeedback onPress={() => {console.log("Profile clicked")}} >
             <Icon
               name='person'
               type='material'
@@ -135,21 +136,31 @@ const SwipePage = ({ route, navigation, user }) => {
           </TouchableWithoutFeedback>
         </View>
       </Header>
-
-      {loading? 
+      {loading?
         <NoCards>
           <LoadingImage source={require('../public/imgs/Loading.gif')}></LoadingImage>
-        </NoCards>: 
+        </NoCards> :
         <CardContainer>
-          <CardPage cards={cards} navigation={navigation} handleNextCard={handleNextCard} userInfoDB={userInfoDB} currentUserDbInfo={currentUserDbInfo}/>
+          <CardPage navigation={navigation}/>
         </CardContainer>
       }
+
+      
     </Container>
   )
 }
+
+
 const mapStateToProps = (state) => {
-  const { user } = state
-  return { user }
+  const { user, cards} = state
+  return { user, cards }
 };
 
-export default connect(mapStateToProps)(SwipePage);
+
+const mapDispatchToProps = dispatch => (
+  bindActionCreators({
+      updateCardImages,
+  }, dispatch)
+);
+
+export default connect(mapStateToProps, mapDispatchToProps)(SwipePage);

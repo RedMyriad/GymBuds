@@ -7,7 +7,11 @@ import { StyleSheet, PixelRatio, View, Linking, ImageBackground, Text, Button } 
 
 import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
-import { updateUser } from "../state/actions/user"
+import firestore from '@react-native-firebase/firestore';
+
+import { updateUser } from "../state/actions/user";
+import { updateCards } from "../state/actions/cards";
+import { updateUserDatabase } from "../state/actions/userDatabse";
 
 function LoginPage(props) {
     const { navigation } = props
@@ -19,7 +23,26 @@ function LoginPage(props) {
     useEffect(()=>{
         if(user){
             props.updateUser(user);
-            navigation.navigate("Swipe");
+            firestore().collection("users").get().then(querySnapshot => {
+                let localDB = []
+                querySnapshot.forEach(documentSnapshot => {
+                  localDB.push(documentSnapshot.data())
+                })
+                props.updateUserDatabase(localDB);
+                let localCards = []
+                for(let dbUser of localDB){
+                    if(!(user.uid === dbUser.id)){
+                        if(!localCards.filter(e=>e.id === dbUser.id).length > 0){
+                            localCards.push({id: dbUser.id, name: dbUser.name, img: dbUser.images[0]})
+                        }
+                    }
+                    else{
+                        // setup db user info
+                    }
+                }
+                props.updateCards(localCards);
+                navigation.navigate("Swipe");
+            });
         }
     }, [user]);
 
@@ -128,13 +151,15 @@ const styles = StyleSheet.create({
 
 
 const mapStateToProps = (state) => {
-    const { user } = state
-    return { user }
+    const { user, cards } = state
+    return { user, cards }
 };
 
 const mapDispatchToProps = dispatch => (
     bindActionCreators({
         updateUser,
+        updateCards,
+        updateUserDatabase,
     }, dispatch)
 );
   
