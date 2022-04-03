@@ -33,7 +33,7 @@ function LoginPage(props) {
                 for(let dbUser of localDB){
                     if(!(user.uid === dbUser.id)){
                         if(!localCards.filter(e=>e.id === dbUser.id).length > 0){
-                            localCards.push({id: dbUser.id, name: dbUser.name, img: dbUser.images[0]})
+                            localCards.push({id: dbUser.id, name: dbUser.name, images: dbUser.images})
                         }
                     }
                     else{

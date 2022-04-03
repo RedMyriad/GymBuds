@@ -9,7 +9,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
 import { updateCards } from "../state/actions/cards";
-
+import Card from "./Card"
 
 import { Icon, Avatar } from 'react-native-elements';
 
@@ -102,6 +102,17 @@ function CardPage({ navigation, cards, cardImages, userDatabase, user, updateCar
     })
   };
 
+  const filterCards = (data) =>{
+    let imageURL = [];
+    for(let image of cardImages){
+      if(image.id == data.id){
+          imageURL.push(image === undefined? {img: ["https://firebasestorage.googleapis.com/v0/b/gymbudsv3.appspot.com/o/images%2Fdinesh.jpg?alt=media&token=064fc862-b384-42d4-85cc-f448818a9efc"]}: image);
+      }
+    }
+
+    return imageURL;
+  }
+
   function handleYup(card) {
     
     let likedUser = userDatabase.filter(e=>e.id === card.id)[0];
@@ -142,32 +153,12 @@ function CardPage({ navigation, cards, cardImages, userDatabase, user, updateCar
       </NoCards>
     );
   }
-
-  function Card({ data }) {
-
-    let imageURL;
-    for(let image of cardImages){
-      if(image.id == data.id){
-        imageURL = image;
-      }
-    }
-
-    imageURL = imageURL === undefined? {img: "https://firebasestorage.googleapis.com/v0/b/gymbudsv3.appspot.com/o/images%2Fdinesh.jpg?alt=media&token=064fc862-b384-42d4-85cc-f448818a9efc"}: imageURL;
-
-    return (
-      <CardContainerSub>
-        <CardImage source={{uri: imageURL.img}}>
-          <CardTitle>{data.name}</CardTitle>
-        </CardImage>
-      </CardContainerSub>
-    );
-  }
   
   return (
     <CardContainer>
       <SwipeCards
         cards={cards}
-        renderCard={(cardData) => <Card data={cardData} />}
+        renderCard={(cardData) => <Card data={cardData} imageList={filterCards(cardData)}/>}
         keyExtractor={(cardData) => String(cardData.id)}
         renderNoMoreCards={() => <StatusCard/>}
         dragY={false}

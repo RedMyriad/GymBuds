@@ -32,14 +32,6 @@ const LogoImage = styled.Image`
     overflow: hidden;
 `
 
-const ProfileImage = styled.Image`
-    width: 45px;
-    height: 45px;
-    border-radius: 15px;
-    overflow: hidden;
-    margin-right: 20px;
-`
-
 const MessageListContainer = styled.View`
     flex: 15;
     padding-top: 25px;
@@ -51,6 +43,19 @@ const Message = styled.View`
     flex-direction: row;
     margin-bottom: 30px;
     padding-bottom: 5px;
+    padding-left: 5px;
+`
+
+const MatchContainer = styled.View`
+    flex-direction: column;
+`
+
+const MatchList = styled.View`
+    flex-direction: row;
+    align-items: center;
+    margin-bottom: 30px;
+    padding-bottom: 5px;
+    padding-left: 5px;
 `
 
 const MessageContent = styled.View`
@@ -59,19 +64,46 @@ const MessageContent = styled.View`
     margin-top: 5px;
 `
 
+const MatchHeader = styled.Text`
+    margin-bottom: 5px;
+    font-weight: 500;
+    color: #e63946;
+`
+
+const MessageHeader = styled.Text`
+    margin-bottom: 10px;
+    font-weight: 500;
+    color: #ffb703;
+`
+
 
 const MessageList = (props) =>{
-    const {navigation, user} = props;
+
+    const {navigation, user, userDatabase, cardImages} = props;
     const [messages, setMessages] = useState([]);
+
+    let currentUserDbInfo = userDatabase.filter(e=>e.id === user.uid)[0];
+    let matchedImages = [];
+    let addedID = [];
+    
+    for(let image of cardImages){
+        if(currentUserDbInfo.matches.includes(image.id)){
+            if(!addedID.includes(image.id)){
+                addedID.push(image.id)
+                matchedImages.push(image)
+            }
+        }
+    }
+
     useEffect(() => {
         firestore().collection("messages").get().then(querySnapshot => {
             let localDB = []
             querySnapshot.forEach(documentSnapshot => {
-                if(documentSnapshot.id.includes(user.user.uid)){
+                if(documentSnapshot.id.includes(user.uid)){
                     let messages = documentSnapshot.data().messages
                     let partnerID = ""; 
                     for(let message of messages){
-                        if(message.id !== user.user.uid){
+                        if(message.id !== user.uid){
                             partnerID = message.id;
                             break;
                         }
@@ -104,30 +136,44 @@ const MessageList = (props) =>{
                 <LogoImage source={require('../public/imgs/logo_transparent.png')}/>
             </Header>
             <MessageListContainer>
-              <ScrollView showsVerticalScrollIndicator={false}>
-                    {messages.map((character) =>
-                        <TouchableWithoutFeedback onPress={()=> {navigation.navigate("Chat",  { partner: 789, user: props.user})}}>
-                            <Message key={Math.random().toString(16)}>
+                <TouchableWithoutFeedback >
+                    <MatchContainer>
+                        <MatchHeader>New Matches</MatchHeader>
+                        <MatchList>
+                            {matchedImages.map((image) =>
                                 <Avatar 
                                     size={50}
                                     rounded 
-                                    source={character.img}/>
-                                <MessageContent>
-                                    <Text style={{fontWeight: 'bold', color: "black"}}>{character.name}</Text>
-                                    <Text>{character.message}</Text>
-                                </MessageContent>
-                            </Message>
-                        </TouchableWithoutFeedback>
-                    )}
-              </ScrollView>
+                                    source={{uri: image.img}}/>
+                            )}
+                        </MatchList>
+                    </MatchContainer>
+                </TouchableWithoutFeedback>
+                <MessageHeader>Messages</MessageHeader>
+                <ScrollView showsVerticalScrollIndicator={false}>
+                        {messages.map((character) =>
+                            <TouchableWithoutFeedback onPress={()=> {navigation.navigate("Chat",  { partner: 789, user: props.user})}}>
+                                <Message key={Math.random().toString(16)}>
+                                    <Avatar 
+                                        size={50}
+                                        rounded 
+                                        source={character.img}/>
+                                    <MessageContent>
+                                        <Text style={{fontWeight: 'bold', color: "black"}}>{character.name}</Text>
+                                        <Text>{character.message}</Text>
+                                    </MessageContent>
+                                </Message>
+                            </TouchableWithoutFeedback>
+                        )}
+                </ScrollView>
             </MessageListContainer>
         </MessagesContainer>
     )
 }
 
 const mapStateToProps = (state) => {
-    const { user } = state
-    return { user }
+    const { user, userDatabase, cardImages } = state
+    return { user, userDatabase, cardImages }
 };
 
 export default connect(mapStateToProps)(MessageList);

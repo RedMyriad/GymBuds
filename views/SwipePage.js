@@ -95,13 +95,15 @@ const SwipePage = ({ route, navigation, user, cards, updateCardImages }) => {
     // obtain card images
     let localImages = []
     for(let card of cards){
-      let url = storage().ref("/images/" + card.img).getDownloadURL().then((res)=>{
-        localImages.push({id:card.id, img: res})
-        if(cards[cards.length-1].id === card.id){
-          handleGetImages(localImages);
-          setLoadingStateAsync(false);
-        }
-      });
+      for(let image of card.images){
+        let url = storage().ref("/images/" + image).getDownloadURL().then((res)=>{
+          localImages.push({id:card.id, img: res})
+          if(cards[cards.length-1].id === card.id){
+            handleGetImages(localImages);
+            setLoadingStateAsync(false);
+          }
+        });
+      }
     }
   }
 
