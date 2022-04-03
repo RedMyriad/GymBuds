@@ -96,25 +96,32 @@ const MessageList = (props) =>{
     }
 
     useEffect(() => {
-        firestore().collection("messages").get().then(querySnapshot => {
+
+        const firstSubscriber = firestore().collection("messages").onSnapshot(querySnapshot => {
             let localDB = []
             querySnapshot.forEach(documentSnapshot => {
                 if(documentSnapshot.id.includes(user.uid)){
                     let messages = documentSnapshot.data().messages
-                    let partnerID = ""; 
-                    for(let message of messages){
-                        if(message.id !== user.uid){
-                            partnerID = message.id;
+                    let ids = documentSnapshot.data().users
+                    let partnerID = ids[0] === user.uid? ids[1]: ids[0];
+
+                    let partnerImage;
+                    for(let image of cardImages){
+                        if(image.id === partnerID){
+                            partnerImage = image.img
                             break;
                         }
                     }
-                    
-                    let latest = messages[messages.length-1];
-                    localDB.push({"name": partnerID, "message": latest.text, "img": require('../public/imgs/dinesh.jpg')})
+                   
+                    if(messages.length !== 0){
+                        let latest = messages[messages.length-1];
+                        localDB.push({"name": partnerID, "message": latest.text, "img": partnerImage})
+                    }
                 }
             })
             setMessages(localDB);
         });
+        return ()=>{firstSubscriber();}
     }, []);
 
     return(
@@ -136,19 +143,22 @@ const MessageList = (props) =>{
                 <LogoImage source={require('../public/imgs/logo_transparent.png')}/>
             </Header>
             <MessageListContainer>
-                <TouchableWithoutFeedback >
+                {matchedImages.length > 0? 
                     <MatchContainer>
                         <MatchHeader>New Matches</MatchHeader>
                         <MatchList>
                             {matchedImages.map((image) =>
-                                <Avatar 
-                                    size={50}
-                                    rounded 
-                                    source={{uri: image.img}}/>
+                                <TouchableWithoutFeedback onPress={()=> {navigation.navigate("Chat",  { partner: image.id})}}>
+                                    <Avatar 
+                                        size={50}
+                                        rounded 
+                                        source={{uri: image.img}}/>
+                                </TouchableWithoutFeedback>
                             )}
                         </MatchList>
-                    </MatchContainer>
-                </TouchableWithoutFeedback>
+                    </MatchContainer>: 
+                    null
+                }
                 <MessageHeader>Messages</MessageHeader>
                 <ScrollView showsVerticalScrollIndicator={false}>
                         {messages.map((character) =>
@@ -157,7 +167,7 @@ const MessageList = (props) =>{
                                     <Avatar 
                                         size={50}
                                         rounded 
-                                        source={character.img}/>
+                                        source={{uri:character.img}}/>
                                     <MessageContent>
                                         <Text style={{fontWeight: 'bold', color: "black"}}>{character.name}</Text>
                                         <Text>{character.message}</Text>

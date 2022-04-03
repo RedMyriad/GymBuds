@@ -2,7 +2,7 @@ import React, { useState, useMemo, useRef, useEffect } from 'react'
 import { StyleSheet, View, Text, Image, ImageBackground, ScrollView, TouchableWithoutFeedback, TextInput } from 'react-native'
 
 import styled from 'styled-components'
-
+import { connect } from 'react-redux';
 import LottieView from 'lottie-react-native';
 import { Icon } from 'react-native-elements';
 
@@ -21,20 +21,19 @@ const Header = styled.View`
     height: 5px;
     min-height: 10px;
     flex-direction: row;
+    border-bottom-color: #e2e2e2;
+    border-bottom-width: 0.2px;
+    padding-bottom: 5px;
 `
 
 const UserHeader = styled.Text`
     width: 100%;
     flex-direction: row;
-    border-color: gray;
-    border-bottom-width: 1px;
     font-weight: bold;
     color: black;
     text-align: center;
-    margin-left: 5px;
     margin-right: 5px;
     padding-right: 5%;
-    padding-left: 5%;
 `
 
 const Footer = styled.View`
@@ -95,7 +94,7 @@ export function useLottieAnim() {
     return animation
 }
 
-const ChatPage = ({  route, navigation }) =>{
+const ChatPage = ({  route, navigation, user }) =>{
 
     const [messages, setMessages] = useState([]);
     const [workingUID, setWorkingUID] = useState();
@@ -105,13 +104,23 @@ const ChatPage = ({  route, navigation }) =>{
     let listViewRef = useRef(null);
 
     let partnerName = route.params.partner;
-    let user = route.params.user.user;
 
-    let partnetID = "789";
+    let userIdCombo1 = user.uid + "_" + partnerName;
+    let userIdCombo2 = partnerName + "_" + user.uid;
 
-    let userIdCombo1 = user.uid + "_" + partnetID;
-    let userIdCombo2 = partnetID + "_" + user.uid;
+    // handle first time messages
+    firestore().collection("messages").doc(userIdCombo1).get().then((doc) => {
+        if (!doc.exists) {
+            firestore().collection("messages").doc(userIdCombo1).set({
+                messages: [],
+                users: [partnerName, user.uid]
+            }, { merge: true });
 
+            setWorkingUID(userIdCombo1);
+        }
+    }).catch((error) => {
+        console.log("Error getting document:", error);
+    });
 
     useEffect(() => {
 
@@ -142,7 +151,10 @@ const ChatPage = ({  route, navigation }) =>{
         });
 
         // Stop listening for updates when no longer required
-        return () => { firstSubscriber(); secondSubscriber(); }
+        return () => { 
+            firstSubscriber(); 
+            secondSubscriber();
+        }
     }, []);
 
     const onMessageChange = (msg) =>{
@@ -151,6 +163,18 @@ const ChatPage = ({  route, navigation }) =>{
 
     async function handleMessage(){
         if(workingUID !== ""){
+
+            firestore().collection("users").doc(user.uid).get().then((data)=>{
+                let matches = data.data().matches;
+                if(matches.includes(partnerName)){
+                    matches.splice(matches.indexOf(partnerName), 1);
+                }
+                firestore().collection("users").doc(user.uid)
+                .update({
+                    matches: matches
+                });
+            })
+
             firestore().collection("messages").doc(workingUID)
             .update({
                 messages: firestore.FieldValue.arrayUnion({
@@ -178,7 +202,7 @@ const ChatPage = ({  route, navigation }) =>{
     return(
         <ChatPageContainer>
             <Header>
-                <TouchableWithoutFeedback onPress={() => navigation.navigate("Swipe")} >
+                <TouchableWithoutFeedback onPress={() => {navigation.navigate("MessageList")}} >
                     <Icon
                         name='chevron-left'
                         type='octicon'
@@ -205,7 +229,7 @@ const ChatPage = ({  route, navigation }) =>{
                                     alignSelf: 'flex-end',
                                     borderRadius: 20,
                                 }} key={messageContent.key}>
-              
+            
                                     <Message>
                                         <MessageContent>
                                             <Text style={{color: "white"}}>{messageContent.text}</Text>
@@ -257,10 +281,10 @@ const ChatPage = ({  route, navigation }) =>{
     )
 }
 
-let styles = StyleSheet.create({
-    message:{
-      marginLeft: 150,
-    }
-  });
 
-export default ChatPage;
+const mapStateToProps = (state) => {
+    const { user, userDatabase, cardImages } = state
+    return { user, userDatabase, cardImages }
+};
+
+export default connect(mapStateToProps)(ChatPage);

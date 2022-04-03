@@ -23,7 +23,7 @@ function LoginPage(props) {
     useEffect(()=>{
         if(user){
             props.updateUser(user);
-            firestore().collection("users").get().then(querySnapshot => {
+            const firstSubscriber = firestore().collection("users").onSnapshot(querySnapshot => {
                 let localDB = []
                 querySnapshot.forEach(documentSnapshot => {
                   localDB.push(documentSnapshot.data())
@@ -41,9 +41,10 @@ function LoginPage(props) {
                     }
                 }
                 props.updateCards(localCards);
-                navigation.navigate("Swipe");
             });
+            return ()=>{firstSubscriber()};
         }
+        navigation.navigate("Swipe");
     }, [user]);
 
     useEffect(() => {
