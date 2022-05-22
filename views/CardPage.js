@@ -173,7 +173,7 @@ function CardPage({ navigation, cards, cardImages, userDatabase, user, updateCar
         <View>
           <TouchableWithoutFeedback onPress={() => handleNope({})} >
             <Icon
-              raised
+              reverse
               name='close'
               type='material'
               color='#ec5e6f'
@@ -184,21 +184,10 @@ function CardPage({ navigation, cards, cardImages, userDatabase, user, updateCar
         <View>
           <TouchableWithoutFeedback onPress={()=>handleYup(cards[0])} >
             <Icon
-              raised
+              reverse
               name='favorite'
               type='material'
               color='#76e2b3'
-              size={20}
-              />
-          </TouchableWithoutFeedback>
-        </View>
-        <View>
-          <TouchableWithoutFeedback onPress={() => {}} >
-            <Icon
-              raised
-              name='flash-on'
-              type='material'
-              color='#915dd1'
               size={20}
               />
           </TouchableWithoutFeedback>

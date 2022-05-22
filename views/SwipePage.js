@@ -7,6 +7,7 @@ import { connect } from 'react-redux';
 import { bindActionCreators } from 'redux';
 
 import { updateCardImages } from "../state/actions/cardImages";
+import { updateUserImages } from "../state/actions/userImages";
 
 import { Icon, Avatar } from 'react-native-elements';
 import storage from '@react-native-firebase/storage';
@@ -65,7 +66,7 @@ const CardContainer = styled.View`
   background-color: #fff;
 `
 
-const SwipePage = ({ route, navigation, user, cards, updateCardImages }) => {
+const SwipePage = ({ route, navigation, user, cards, userAppInfo, updateCardImages, updateUserImages}) => {
 
   const [loading, setLoading] = useState(true);
 
@@ -81,8 +82,19 @@ const SwipePage = ({ route, navigation, user, cards, updateCardImages }) => {
     });
   }
 
+  const setUserImagesAsync = (imageList) =>{
+    return new Promise((resolve) => {
+      updateUserImages(imageList);
+    });
+  }
+
   useEffect(()=>{
-    console.log("swipe page getting images")
+    if(userAppInfo.id){
+      handleGetUserData();
+    }
+  }, [userAppInfo]);
+
+  useEffect(()=>{
     setLoadingStateAsync(true);
     handleGetCards();
   }, [cards]);
@@ -90,6 +102,23 @@ const SwipePage = ({ route, navigation, user, cards, updateCardImages }) => {
   const handleGetImages = async(imageList) =>{
     setImagesAsync(imageList)
   }
+
+
+  const handleGetUserImages = async(imageList) =>{
+    setUserImagesAsync(imageList)
+  }
+
+  const handleGetUserData = async() =>{
+    setLoadingStateAsync(true);
+    let userLocalImages = [];
+    for(let image of userAppInfo.images){
+      let url = storage().ref("/images/" + image).getDownloadURL().then((res)=>{
+        userLocalImages.push(res.toString())
+        handleGetUserImages(userLocalImages);
+      });
+    }
+    setLoadingStateAsync(false);
+}
 
   const handleGetCards = async() =>{
     // obtain card images
@@ -114,7 +143,7 @@ const SwipePage = ({ route, navigation, user, cards, updateCardImages }) => {
           position:'absolute',
           left: 20,
         }}>
-          <TouchableWithoutFeedback onPress={() => {console.log("Profile clicked")}} >
+          <TouchableWithoutFeedback onPress={() => {navigation.navigate("Profile");}} >
             <Icon
               name='person'
               type='material'
@@ -154,14 +183,15 @@ const SwipePage = ({ route, navigation, user, cards, updateCardImages }) => {
 
 
 const mapStateToProps = (state) => {
-  const { user, cards} = state
-  return { user, cards }
+  const { user, cards, userAppInfo} = state
+  return { user, cards, userAppInfo }
 };
 
 
 const mapDispatchToProps = dispatch => (
   bindActionCreators({
       updateCardImages,
+      updateUserImages,
   }, dispatch)
 );
 

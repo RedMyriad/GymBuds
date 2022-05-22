@@ -12,6 +12,7 @@ import firestore from '@react-native-firebase/firestore';
 import { updateUser } from "../state/actions/user";
 import { updateCards } from "../state/actions/cards";
 import { updateUserDatabase } from "../state/actions/userDatabse";
+import { updateUserAppInfo } from "../state/actions/userAppInfo";
 
 function LoginPage(props) {
     const { navigation } = props
@@ -31,13 +32,23 @@ function LoginPage(props) {
                 props.updateUserDatabase(localDB);
                 let localCards = []
                 for(let dbUser of localDB){
+
+                    const nameTemp = dbUser.name.split(" ");
+
+                    for (var i = 0; i < nameTemp .length; i++) {
+                        nameTemp[i] = nameTemp[i].charAt(0).toUpperCase() + nameTemp[i].slice(1);
+
+                    }
+
+                    const nameFormated = nameTemp.join(" ");
+
                     if(!(user.uid === dbUser.id)){
                         if(!localCards.filter(e=>e.id === dbUser.id).length > 0){
-                            localCards.push({id: dbUser.id, name: dbUser.name, images: dbUser.images})
+                            localCards.push({id: dbUser.id, name: nameFormated, images: dbUser.images})
                         }
                     }
                     else{
-                        // setup db user info
+                        props.updateUserAppInfo({id: dbUser.id, name: nameFormated, images: dbUser.images, age: 24});
                     }
                 }
                 props.updateCards(localCards);
@@ -152,8 +163,8 @@ const styles = StyleSheet.create({
 
 
 const mapStateToProps = (state) => {
-    const { user, cards } = state
-    return { user, cards }
+    const { user, cards, userAppInfo } = state;
+    return { user, cards, userAppInfo };
 };
 
 const mapDispatchToProps = dispatch => (
@@ -161,6 +172,7 @@ const mapDispatchToProps = dispatch => (
         updateUser,
         updateCards,
         updateUserDatabase,
+        updateUserAppInfo,
     }, dispatch)
 );
   
