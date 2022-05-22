@@ -1,5 +1,5 @@
 import React, { useState, useMemo, useRef, useCallback, useEffect } from 'react';
-import { View,TouchableWithoutFeedback, Text, TextInput} from 'react-native';
+import { View,TouchableWithoutFeedback, Text, TextInput, Button} from 'react-native';
 import styled from 'styled-components';
 import ImageGallery from './components/ImageGallery';
 import { Icon, Avatar } from 'react-native-elements';
@@ -26,6 +26,16 @@ const PageHeader = styled.Text`
     font-weight: 700;
 `
 
+const ScheduleButton = styled.Button`
+
+`
+
+const ScheduleContainer = styled.View`
+    height: 50px;
+    margin-top: 40px;
+    margin: 40px 10px 0px 10px;
+`
+
 const SectionHeader = styled.Text`
     font-weight: 500;
     margin-left: 10px;
@@ -50,6 +60,11 @@ const EditProfilePage = ({ route, navigation, userImages}) => {
     const handleLeave = () =>{
         navigation.navigate("Profile")
         // save new data;
+    }
+
+    const handleViewSchedule = () =>{
+        // save data
+        navigation.navigate("SchedulePage")
     }
 
     return (
@@ -81,6 +96,15 @@ const EditProfilePage = ({ route, navigation, userImages}) => {
                     value={aboutText}
                 />
             </AboutInfoContainer>
+            <ScheduleContainer>
+                <SectionHeader>Schedule</SectionHeader>
+                <ScheduleButton 
+                    title="Set Schedule"
+                    onPress={() => handleViewSchedule()}
+                >
+
+                </ScheduleButton>
+            </ScheduleContainer>
         </ProfileContainer>
     )
 };

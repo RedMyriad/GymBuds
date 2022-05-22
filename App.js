@@ -18,6 +18,7 @@ import ChatPage from './views/ChatPage';
 import MessageList from './views/MessageList';
 import ProfilePage from './views/ProfilePage';
 import EditProfilePage from './views/EditProfilePage';
+import SchedulePage from './views/SchedulePage';
 
 import { NavigationContainer } from '@react-navigation/native';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
@@ -50,6 +51,7 @@ const App = () => {
           <Stack.Screen name="Chat" component={ChatPage}/>
           <Stack.Screen name="Profile" component={ProfilePage}/>
           <Stack.Screen name="EditProfile" component={EditProfilePage}/>
+          <Stack.Screen name="SchedulePage" component={SchedulePage}/>
           <Stack.Screen name="MessageList" component={MessageList}/>
         </Stack.Navigator>
       </NavigationContainer>

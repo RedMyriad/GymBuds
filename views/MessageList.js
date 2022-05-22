@@ -32,6 +32,10 @@ const LogoImage = styled.Image`
     overflow: hidden;
 `
 
+const PageHeader = styled.Text`
+    font-weight: 700;
+`
+
 const MessageListContainer = styled.View`
     flex: 15;
     padding-top: 25px;
@@ -140,7 +144,7 @@ const MessageList = (props) =>{
                         />
                     </TouchableWithoutFeedback>
                 </View>
-                <LogoImage source={require('../public/imgs/logo_transparent.png')}/>
+                <PageHeader>Messages</PageHeader>
             </Header>
             <MessageListContainer>
                 {matchedImages.length > 0? 
