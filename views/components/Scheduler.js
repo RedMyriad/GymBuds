@@ -1,11 +1,15 @@
 import React, { useState, useMemo, useRef, useCallback, useEffect }from 'react'
 import { View, ScrollView } from 'react-native';
 import Header from './Header';
+import styled from 'styled-components';
 import ScheduleRow from './ScheduleRow';
 import Appointment from './Appointment';
 import PropTypes from 'prop-types';
-import * as en from './Language/en';
-import * as fr from './Language/fr';
+
+
+import { connect } from 'react-redux';
+import { bindActionCreators } from 'redux';
+import { updateUserSchedule } from "../../state/actions/userSchedule";
 
 const days = [
     {
@@ -38,11 +42,42 @@ const days = [
     },
 ];
 
-export default function Schedule(props){
-    
-    const {data, numberOfRows, rowSize, minHour, minMinute, onAppointmentRemoved, canRemove} = props;
+const Timeblocks = styled.ScrollView`
+    margin-top: 10px;
+`
 
-    let [dayNumber, setDayNumber] = useState(1);
+const ScheduleButton = styled.Button`
+
+`
+
+const ScheduleContainer = styled.View`
+    margin-top: 10px;
+`
+
+
+function Schedule({ navigation, numberOfRows, rowSize, minHour, minMinute, canRemove, updateUserSchedule }){
+
+    const [dayNumber, setDayNumber] = useState(1);
+    const [appointments, setAppointments] = useState([]);
+    const [displayedAppointments, setDisplayedAppointments] = useState([]);
+    const [timeRows, setTimeRows] = useState([]);
+
+    const backColor = 'white';
+    const firstHour = new Date(2021, 2, 1 , minHour, minMinute, 0, 0);
+
+    useEffect(()=>{
+        setTimeRows(createTimesRows(firstHour));
+    }, [])
+
+    useEffect(()=>{
+        let visibleAppointments = [];
+        appointments.forEach((value, index)=>{
+            if(value.DayIndex === dayNumber){
+                visibleAppointments.push(value)
+            }
+        })
+        setDisplayedAppointments(visibleAppointments);
+    }, [dayNumber, appointments]);
 
     const formatDateYYYYMMDD = (date) => {
         let yourDate = new Date()
@@ -64,55 +99,130 @@ export default function Schedule(props){
         
         for(var i = 0; i < lines; i++){
             times.push(formatDateYYYYMMDD(datetime));
-            datetime.setHours(datetime.getHours() + 1);
+            if(datetime.getMinutes() === 30){
+                datetime.setMinutes(0);
+                datetime.setHours(datetime.getHours() + 1);
+                continue;
+            }
+            datetime.setMinutes(datetime.getMinutes() + 30);
         }
-
         return times;
     }
 
     const onChangeDay = (item) => {
-        setDayNumber(item.value);
+        if(item === dayNumber){
+            return;
+        }
+        setDayNumber(item);
     }
 
-    const getDayAppointments = () => {
-        const localData = data != null ? data : [];
-        const selectedDay = dayNumber;
-
-        return localData.filter((item, index)=>{
-            return item.DayIndex == selectedDay;
-        })
+    const makeid = ()=>{
+        var result           = '';
+        var characters       = 'ABCDEFGHIJKLMNOPQRSTUVWXYZabcdefghijklmnopqrstuvwxyz0123456789';
+        var charactersLength = characters.length;
+        for ( var i = 0; i < 20; i++ ) {
+          result += characters.charAt(Math.floor(Math.random() * charactersLength));
+       }
+       return result;
     }
 
-    
-    const backColor = 'white';
+    const onTimeSelect = (time) =>{
+        // hh:mm am/pm
+        let splitTime = time.split(":");
 
-    const firstHour = new Date(2021, 2, 1 , minHour, minMinute, 0, 0);
+        let hour = parseInt(splitTime[0]);
+        let min = parseInt(splitTime[1].split(" ")[0]);
+        let period = splitTime[1].split(" ")[1];
+        if(hour == 12 && period == "am"){
+            hour = 0;
+        }
+        else{
+            if( hour !== 12 && period == "pm"){
+                hour += 12;
+            }
+        }
+
+        let newStartTime = String(hour).padStart(2, '0') + ":" + String(min).padStart(2, '0');
+        let newEndTime = min === 30? String((hour+1)).padStart(2, '0') + ":00": String(hour).padStart(2, '0') + ":30";
+        let newAppointment = {
+            Title: '',
+            Subtitle: '',
+            DayIndex: dayNumber, 
+            StartTime: newStartTime,
+            EndTime: newEndTime,
+            Color: "#56b7fc",
+            Key: makeid(),
+        };
+
+        let localApointments = appointments.slice();
+        localApointments.push(newAppointment);
+        setAppointments(localApointments)
+    }
+
+
+    const handleDeleteTimeBlock = (dataBlock) =>{
+
+        let localApointments = appointments.filter(function(item) {
+            return item.Key !== dataBlock.Key
+        });
+
+        setAppointments(localApointments)
+    }
+
+    const handleAcceptSchedule = () =>{
+        updateUserSchedule(appointments);
+        navigation.navigate("EditProfile");
+    }
         
     return(
-        <View style={{flex:1, width: '100%', backgroundColor: backColor}}>
-            <Header days={days} onChangeDay={onChangeDay} />
-            <ScrollView>
-                {createTimesRows(firstHour).map((item, index)=>
+        <View style={{flex:1, width: '100%', backgroundColor: backColor, padding: 10}}>
+            <Header days={days} changeDay={(item) => onChangeDay(item)} />
+            {appointments.length > 0? 
+                <ScheduleContainer>
+                    <ScheduleButton 
+                        title="Accept"
+                        onPress={() => handleAcceptSchedule()}
+                    >
+                    </ScheduleButton>
+                </ScheduleContainer>:
+                null
+            }
+            <Timeblocks>
+                {timeRows.map((item, index)=>
                         <ScheduleRow 
                             key={index} 
                             datetime={item} 
                             rowSize={rowSize}
+                            onTimeSelect={(time)=>onTimeSelect(time)}
                         />
                 )}
-                {getDayAppointments().map((item, index)=>
+                {displayedAppointments.map((item, index)=>
                         <Appointment 
-                            key={-index} 
+                            key={item.Key} 
                             canRemove={canRemove}
                             rowSize={rowSize} 
                             firstHour={firstHour} 
                             data={item} 
-                            onDelete={app=>{if(onAppointmentRemoved != null) onAppointmentRemoved(app)}}    
+                            onDelete={(data)=>handleDeleteTimeBlock(data)}    
                         />
                 )} 
-            </ScrollView>
+            </Timeblocks>
         </View>
     );
 }
+
+const mapStateToProps = (state) => {
+    const { user, cards, userAppInfo} = state
+    return { user, cards, userAppInfo }
+  };
+
+const mapDispatchToProps = dispatch => (
+    bindActionCreators({
+        updateUserSchedule,
+    }, dispatch)
+);
+  
+export default connect(mapStateToProps, mapDispatchToProps)(Schedule);
 
 Schedule.propTypes = {
   data: PropTypes.array,

@@ -5,6 +5,7 @@ import cardImageReducer from "./cardImageReducer";
 import userDatabaseReducer from './userDatabaseReducer';
 import userImagesReducer from './userImagesReducer';
 import userAppInfoReducer from './userAppInfoReducer';
+import userScheduleReducer from './userScheduleReducer';
 
 export default combineReducers({
   user: userReducer,
@@ -13,4 +14,5 @@ export default combineReducers({
   userDatabase: userDatabaseReducer,
   userImages: userImagesReducer,
   userAppInfo: userAppInfoReducer,
+  userSchedule: userScheduleReducer,
 });

@@ -78,16 +78,14 @@ const SchedulePage = ({ route, navigation, }) => {
                 </View>
                 <PageHeader>My Schedule</PageHeader>
             </Header>
-            <Schedule 
-                lang='en'
+            <Schedule
+                navigation={navigation}
                 rowSize={48}
                 minHour={0}
                 minMinute={0}
-                numberOfRows={24}
+                numberOfRows={48}
                 canRemove={true}
                 darkMode={false}
-                onAppointmentRemoved={(app)=>console.log(app)}
-                onSelectedDayChanged={(dayIndex)=>console.log(dayIndex)}
             />
         </ScheduleContainer>
     )

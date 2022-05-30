@@ -4,10 +4,16 @@ import DropDownPicker from 'react-native-dropdown-picker';
 
 export default function Header(props){
 
-    const {onChangeDay, days} = props;
+    const {changeDay, days} = props;
 
     const [open, setOpen] = useState(false);
     const [value, setValue] = useState(1);
+
+    useEffect(()=>{
+        if(value){
+            changeDay(value)
+        }
+    }, [value])
 
     const backColor = 'white'
     const textColor =  'black'
@@ -27,7 +33,6 @@ export default function Header(props){
                     justifyContent: 'center'
                 }}
                 labelStyle={{textAlign: 'center', color:textColor}}
-                onChangeItem={onChangeDay}
             />
         </View>
     )

@@ -1,28 +1,36 @@
 import React from 'react'
-import { View, Text, StyleSheet } from 'react-native'
+import { View, Text, StyleSheet, TouchableWithoutFeedback } from 'react-native'
  
 function ScheduleRow(props){
+
+    const { onTimeSelect, selected } = props;
+    
+    let fullTime;
 
     const handleConvertDate = (date) =>{
         let newDate = date.split(" ")[1];
         let timeSplit = newDate.split(":");
         
         let hour = parseInt(timeSplit[0]);
+        let minute = timeSplit[1];
         let am = true;
 
         if(hour === 0){
             hour = 12;
         }
         else{
-            if(hour >= 12){
+            if(hour === 12){
+                am = false;
+            }
+            if(hour >= 13){
                 hour = hour - 12;
                 am = false;
             }
         }
 
-        let modifier = am? "am": "pm";
-
-        return hour + ":00 " + modifier;
+        let modifier = am? " am": " pm";
+        fullTime = hour + ":" + minute + modifier
+        return fullTime;
     }
 
     return(
@@ -30,12 +38,14 @@ function ScheduleRow(props){
             <View style={styles.time_container}>
                 <Text>{handleConvertDate(props.datetime)}</Text>
             </View>
-            <View style={styles.grid_container}>
-                <View style={[styles.separator, {borderBottomColor: 'black', borderBottomWidth:0.7}]} />
-                <View style={styles.separator} />
-                <View style={[styles.separator, {borderBottomColor: 'black'}]} />
-                <View style={styles.separator} />
-            </View>
+            <TouchableWithoutFeedback onPress={()=>onTimeSelect(fullTime)}>
+                <View style={styles.grid_container}>
+                    <View style={[styles.separator, {borderBottomColor: 'black', borderBottomWidth:0.7}]} />
+                    <View style={styles.separator} />
+                    <View style={[styles.separator, {borderBottomColor: 'black'}]} />
+                    <View style={styles.separator} />
+                </View>
+            </TouchableWithoutFeedback>
         </View>
     )
 }
@@ -56,7 +66,7 @@ const styles = StyleSheet.create({
 
     grid_container: {
         flex: 5,
-        justifyContent: 'space-around'
+        justifyContent: 'space-around',
     },
 
     separator: {
