@@ -75,13 +75,8 @@ const EditProfilePage = ({ route, navigation, userImages, userSchedule}) => {
 
         let itemHr = parseInt(itemTime.split(":")[0]);
         let itemMin = parseInt(itemTime.split(":")[1]);
-
-        if(checkHr === itemHr && checkMin === itemMin){
-            return true;
-        }
-
     
-        if(checkMin === itemMin && checkHr === itemHr){
+        if(checkHr === itemHr && checkMin === itemMin){
             return true;
         }
 
@@ -100,7 +95,6 @@ const EditProfilePage = ({ route, navigation, userImages, userSchedule}) => {
                 let daySchedule = userSchedule.filter(function(item) {
                     return item.DayIndex === i;
                 });
-
                 daySchedule.forEach(item=>{
 
                     let positionFound = false;
@@ -114,11 +108,26 @@ const EditProfilePage = ({ route, navigation, userImages, userSchedule}) => {
                             let dateHr = parseInt(date.start.split(":")[0]);
                             let checkHr = parseInt(item.StartTime.split(":")[0]);
 
-                            if(checkHr < dateHr && handleTimeCheck(item.EndTime, date.start)){
+
+                            let dateMin = parseInt(date.start.split(":")[1]);
+                            let checkMin = parseInt(item.StartTime.split(":")[1]);
+
+                            if(checkHr === dateHr){
+                                if(checkMin < dateMin && handleTimeCheck(item.EndTime, date.start)){
+                                    positionFound = true;
+                                    date.start = item.StartTime;
+                                }
+                                if(checkMin > dateMin && handleTimeCheck(item.StartTime, date.end)){
+                                    positionFound = true;
+                                    date.end = item.EndTime; 
+                                }
+                            }
+
+                            if((checkHr < dateHr-1) && handleTimeCheck(item.EndTime, date.start)){
                                 positionFound = true;
                                 date.start = item.StartTime;
                             }
-                            else if((checkHr === dateHr+1 || checkHr === dateHr) && handleTimeCheck(item.StartTime, date.end)){
+                            else if(checkHr > dateHr && handleTimeCheck(item.StartTime, date.end)){
                                 positionFound = true;
                                 date.end = item.EndTime; 
                             }

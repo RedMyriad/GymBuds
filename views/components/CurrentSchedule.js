@@ -26,6 +26,23 @@ const DayContainer = styled.View`
 
 export default function CurrentSchedule({ data }){
 
+    const getFormattedTime =  (fourDigitTime) => {
+        var hours24 = parseInt(fourDigitTime.substring(0,2));
+        var hours = ((hours24 + 11) % 12) + 1;
+        var amPm = hours24 > 11 ? 'pm' : 'am';
+        var minutes = fourDigitTime.substring(2);
+    
+        return hours + ':' + minutes + amPm;
+    };
+
+    data.forEach(day=>{
+        day.forEach((scheduleBlock,index)=>{
+            getFormattedTime(scheduleBlock.start.replace(":", ""))
+            getFormattedTime(scheduleBlock.end.replace(":", ""))
+            day[index] = {start: getFormattedTime(scheduleBlock.start.replace(":", "")), end: getFormattedTime(scheduleBlock.end.replace(":", ""))}
+        })
+    })
+
     const days = ["Mon", "Tues", "Wed", "Thurs", "Fri", "Sat", "Sun"];
 
     /*

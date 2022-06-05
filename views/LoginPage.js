@@ -16,7 +16,6 @@ import { updateUserAppInfo } from "../state/actions/userAppInfo";
 
 function LoginPage(props) {
     const { navigation } = props
-    const [userInfo, setuserInfo] = useState(null);
 
     const [initializing, setInitializing] = useState(true);
     const [user, setUser] = useState();
@@ -24,6 +23,7 @@ function LoginPage(props) {
     useEffect(()=>{
         if(user){
             props.updateUser(user);
+            console.log(user.uid);
             const firstSubscriber = firestore().collection("users").onSnapshot(querySnapshot => {
                 let localDB = []
                 querySnapshot.forEach(documentSnapshot => {

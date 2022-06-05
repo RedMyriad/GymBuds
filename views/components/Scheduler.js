@@ -145,8 +145,6 @@ function Schedule({ navigation, numberOfRows, rowSize, minHour, minMinute, canRe
         let newStartTime = String(hour).padStart(2, '0') + ":" + String(min).padStart(2, '0');
         let newEndTime = min === 30? String((hour+1)).padStart(2, '0') + ":00": String(hour).padStart(2, '0') + ":30";
         let newAppointment = {
-            Title: '',
-            Subtitle: '',
             DayIndex: dayNumber, 
             StartTime: newStartTime,
             EndTime: newEndTime,
