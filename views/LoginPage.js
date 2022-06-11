@@ -19,11 +19,11 @@ function LoginPage(props) {
 
     const [initializing, setInitializing] = useState(true);
     const [user, setUser] = useState();
+    let userFound = false;
 
     useEffect(()=>{
         if(user){
             props.updateUser(user);
-            console.log(user.uid);
             const firstSubscriber = firestore().collection("users").onSnapshot(querySnapshot => {
                 let localDB = []
                 querySnapshot.forEach(documentSnapshot => {
@@ -48,6 +48,7 @@ function LoginPage(props) {
                         }
                     }
                     else{
+                        userFound = true;
                         props.updateUserAppInfo({id: dbUser.id, name: nameFormated, images: dbUser.images, age: 24});
                     }
                 }
@@ -55,7 +56,12 @@ function LoginPage(props) {
             });
             return ()=>{firstSubscriber()};
         }
-        navigation.navigate("Swipe");
+        if(!userFound){
+            navigation.navigate("Introduction");      
+        }
+        else{
+            navigation.navigate("Swipe");
+        }
     }, [user]);
 
     useEffect(() => {

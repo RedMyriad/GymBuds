@@ -6,6 +6,8 @@ import CurrentSchedule from './components/CurrentSchedule';
 import { Icon, Avatar } from 'react-native-elements';
 import { connect } from 'react-redux';
 
+import firestore from '@react-native-firebase/firestore';
+
 const ProfileContainer = styled.View`
     flex: 1;
     overflow-y: scroll;
@@ -53,14 +55,15 @@ const AboutInput = styled.TextInput`
     text-align-vertical: top;
 `;
 
-const EditProfilePage = ({ route, navigation, userImages, userSchedule}) => {
+const EditProfilePage = ({ route, navigation, userImages, userSchedule, userDatabase, user}) => {
 
     let [aboutText, setAboutText] = useState("");
     let [schedule, setSchedule] = useState([]);
+    let currentUserDbInfo = userDatabase.filter(e=>e.id === user.uid)[0];
 
     const handleLeave = () =>{
+        
         navigation.navigate("Profile")
-        // save new data;
     }
 
     const handleViewSchedule = () =>{
@@ -140,7 +143,6 @@ const EditProfilePage = ({ route, navigation, userImages, userSchedule}) => {
                 
                 localSchedule[i-1] = dateGroups;
             }
-            console.log("updating schedule")
             setSchedule(localSchedule);
         }
     }, [userSchedule])
@@ -194,8 +196,8 @@ const EditProfilePage = ({ route, navigation, userImages, userSchedule}) => {
 
 
 const mapStateToProps = (state) => {
-    const { user, userImages, userAppInfo, userSchedule} = state
-    return { user, userImages, userAppInfo, userSchedule}
+    const { user, userImages, userAppInfo, userSchedule, userDatabase} = state
+    return { user, userImages, userAppInfo, userSchedule, userDatabase}
 };
   
 export default connect(mapStateToProps)(EditProfilePage);
