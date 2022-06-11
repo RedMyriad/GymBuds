@@ -19,7 +19,7 @@ function LoginPage(props) {
 
     const [initializing, setInitializing] = useState(true);
     const [user, setUser] = useState();
-    let userFound = false;
+    const [userFound, setUserFound] = useState(false);
 
     useEffect(()=>{
         if(user){
@@ -41,26 +41,28 @@ function LoginPage(props) {
                     }
 
                     const nameFormated = nameTemp.join(" ");
-
+                    console.log(user.uid, dbUser.id);
                     if(!(user.uid === dbUser.id)){
                         if(!localCards.filter(e=>e.id === dbUser.id).length > 0){
                             localCards.push({id: dbUser.id, name: nameFormated, images: dbUser.images})
                         }
                     }
                     else{
-                        userFound = true;
+                        setUserFound(true);
                         props.updateUserAppInfo({id: dbUser.id, name: nameFormated, images: dbUser.images, age: 24});
                     }
                 }
                 props.updateCards(localCards);
             });
+
+            if(!userFound){
+                navigation.navigate("Introduction");      
+            }
+            else{
+                navigation.navigate("Swipe");
+            }
+
             return ()=>{firstSubscriber()};
-        }
-        if(!userFound){
-            navigation.navigate("Introduction");      
-        }
-        else{
-            navigation.navigate("Swipe");
         }
     }, [user]);
 
