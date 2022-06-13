@@ -169,6 +169,7 @@ const ChatPage = ({  route, navigation, user }) =>{
                 if(matches.includes(partnerName)){
                     matches.splice(matches.indexOf(partnerName), 1);
                 }
+                console.log(matches)
                 firestore().collection("users").doc(user.uid)
                 .update({
                     matches: matches

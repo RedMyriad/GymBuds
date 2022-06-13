@@ -81,18 +81,18 @@ const MessageHeader = styled.Text`
 `
 
 
-const MessageList = (props) =>{
+const MessageList = (props) => {
 
-    const {navigation, user, userDatabase, cardImages} = props;
+    const { navigation, user, userDatabase, cardImages } = props;
     const [messages, setMessages] = useState([]);
 
-    let currentUserDbInfo = userDatabase.filter(e=>e.id === user.uid)[0];
+    let currentUserDbInfo = userDatabase.filter(e => e.id === user.uid)[0];
     let matchedImages = [];
     let addedID = [];
-    
-    for(let image of cardImages){
-        if(currentUserDbInfo.matches.includes(image.id)){
-            if(!addedID.includes(image.id)){
+
+    for (let image of cardImages) {
+        if (currentUserDbInfo.matches.includes(image.id)) {
+            if (!addedID.includes(image.id)) {
                 addedID.push(image.id)
                 matchedImages.push(image)
             }
@@ -104,81 +104,82 @@ const MessageList = (props) =>{
         const firstSubscriber = firestore().collection("messages").onSnapshot(querySnapshot => {
             let localDB = []
             querySnapshot.forEach(documentSnapshot => {
-                if(documentSnapshot.id.includes(user.uid)){
+                if (documentSnapshot.id.includes(user.uid)) {
                     let messages = documentSnapshot.data().messages
+                    console.log(documentSnapshot.data())
                     let ids = documentSnapshot.data().users
-                    let partnerID = ids[0] === user.uid? ids[1]: ids[0];
+                    let partnerID = ids[0] === user.uid ? ids[1] : ids[0];
 
                     let partnerImage;
-                    for(let image of cardImages){
-                        if(image.id === partnerID){
+                    for (let image of cardImages) {
+                        if (image.id === partnerID) {
                             partnerImage = image.img
                             break;
                         }
                     }
-                   
-                    if(messages.length !== 0){
-                        let latest = messages[messages.length-1];
-                        localDB.push({"name": partnerID, "message": latest.text, "img": partnerImage})
+
+                    if (messages.length !== 0) {
+                        let latest = messages[messages.length - 1];
+                        localDB.push({ "name": partnerID, "message": latest.text, "img": partnerImage })
                     }
                 }
             })
             setMessages(localDB);
         });
-        return ()=>{firstSubscriber();}
+        return () => { firstSubscriber(); }
     }, []);
 
-    return(
+    return (
         <MessagesContainer>
             <Header>
                 <View style={{
-                position:'absolute',
-                left: 20,
+                    position: 'absolute',
+                    left: 20,
                 }}>
-                    <TouchableWithoutFeedback onPress={() => {navigation.navigate("Swipe");}} >
+                    <TouchableWithoutFeedback onPress={() => { navigation.navigate("Swipe"); }} >
                         <Icon
-                        name='arrow-back-ios'
-                        type='material'
-                        color='#767676'
-                        size={27}
+                            name='arrow-back-ios'
+                            type='material'
+                            color='#767676'
+                            size={27}
                         />
                     </TouchableWithoutFeedback>
                 </View>
                 <PageHeader>Messages</PageHeader>
             </Header>
             <MessageListContainer>
-                {matchedImages.length > 0? 
+                {matchedImages.length > 0 ?
                     <MatchContainer>
                         <MatchHeader>New Matches</MatchHeader>
                         <MatchList>
                             {matchedImages.map((image) =>
-                                <TouchableWithoutFeedback onPress={()=> {navigation.navigate("Chat",  { partner: image.id})}}>
-                                    <Avatar 
+                                <TouchableWithoutFeedback onPress={() => { navigation.navigate("Chat", { partner: image.id }) }}>
+                                    <Avatar
                                         size={50}
-                                        rounded 
-                                        source={{uri: image.img}}/>
+                                        rounded
+                                        source={{ uri: image.img }} />
                                 </TouchableWithoutFeedback>
                             )}
                         </MatchList>
-                    </MatchContainer>: 
+                    </MatchContainer> :
                     null
                 }
                 <MessageHeader>Messages</MessageHeader>
                 <ScrollView showsVerticalScrollIndicator={false}>
-                        {messages.map((character) =>
-                            <TouchableWithoutFeedback onPress={()=> {navigation.navigate("Chat",  { partner: 789, user: props.user})}}>
-                                <Message key={Math.random().toString(16)}>
-                                    <Avatar 
-                                        size={50}
-                                        rounded 
-                                        source={{uri:character.img}}/>
-                                    <MessageContent>
-                                        <Text style={{fontWeight: 'bold', color: "black"}}>{character.name}</Text>
-                                        <Text>{character.message}</Text>
-                                    </MessageContent>
-                                </Message>
-                            </TouchableWithoutFeedback>
-                        )}
+                    {messages.map((character) =>
+                        <TouchableWithoutFeedback onPress={() => { navigation.navigate("Chat", { partner: character.name, user: props.user }) }}>
+                            <Message key={Math.random().toString(16)}>
+                                <Avatar
+                                    size={50}
+                                    rounded
+                                    source={{ uri: character.img }} />
+                                <MessageContent>
+                                    <Text style={{ fontWeight: 'bold', color: "black" }}>{character.name}</Text>
+                                    <Text>{character.message}</Text>
+                                </MessageContent>
+                            </Message>
+                        </TouchableWithoutFeedback>
+                    )}
                 </ScrollView>
             </MessageListContainer>
         </MessagesContainer>

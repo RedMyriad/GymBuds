@@ -41,7 +41,6 @@ function LoginPage(props) {
                     }
 
                     const nameFormated = nameTemp.join(" ");
-                    console.log(user.uid, dbUser.id);
                     if(!(user.uid === dbUser.id)){
                         if(!localCards.filter(e=>e.id === dbUser.id).length > 0){
                             localCards.push({id: dbUser.id, name: nameFormated, images: dbUser.images})
@@ -53,15 +52,17 @@ function LoginPage(props) {
                     }
                 }
                 props.updateCards(localCards);
+
+                /*
+                if(!userFound){
+                    navigation.navigate("Introduction");      
+                }
+                else{
+                    navigation.navigate("Swipe");
+                }
+                */
             });
-
-            if(!userFound){
-                navigation.navigate("Introduction");      
-            }
-            else{
-                navigation.navigate("Swipe");
-            }
-
+            navigation.navigate("Swipe");
             return ()=>{firstSubscriber()};
         }
     }, [user]);
